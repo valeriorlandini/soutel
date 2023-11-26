@@ -20,15 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************/
 
-#ifndef LORENZ_HPP_
-#define LORENZ_HPP_
+#ifndef LORENZ_H_
+#define LORENZ_H_
 
 #include <iostream>
+
+namespace soutel
+{
 
 template <class TSample>
 class Lorenz
 {
-    public:
+public:
     Lorenz(const TSample &sigma = 10.0, const TSample &rho = 28.0,
            const TSample &beta = 8.0/3.0, const TSample &x = 0.01,
            const TSample &y = 0.0, const TSample &z = 0.0,
@@ -88,32 +91,32 @@ class Lorenz
         return false;
     }
 
-    
+
     TSample get_sigma()
     {
         return sigma_;
     }
-    
+
     TSample get_rho()
     {
         return rho_;
     }
-    
+
     TSample get_beta()
     {
         return beta_;
     }
-    
+
     TSample get_x()
     {
         return x_;
     }
-    
+
     TSample get_y()
     {
         return y_;
     }
-    
+
     TSample get_z()
     {
         return z_;
@@ -142,10 +145,12 @@ class Lorenz
         z = z_;
     }
 
-    private:
+private:
     TSample sigma_, beta_, rho_;
     TSample x_, y_, z_;
     TSample t_;
 };
 
-#endif // LORENZ_HPP_
+}
+
+#endif // LORENZ_H_

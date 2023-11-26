@@ -25,6 +25,9 @@ SOFTWARE.
 
 #include <cmath>
 
+namespace soutel
+{
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -33,73 +36,75 @@ template <class TSample>
 inline TSample hann(const TSample &x)
 {
     return (TSample)0.5 *
-	       ((TSample)1.0 - cos((TSample)2.0 * (TSample)M_PI * x));
+           ((TSample)1.0 - cos((TSample)2.0 * (TSample)M_PI * x));
 }
 
 template <class TSample>
 inline TSample hamming(const TSample &x)
 {
-	return (TSample)0.54347826 *
-	       ((TSample)1.0 - cos((TSample)2.0 * (TSample)M_PI * x));
+    return (TSample)0.54347826 *
+           ((TSample)1.0 - cos((TSample)2.0 * (TSample)M_PI * x));
 }
 
 template <class TSample>
 inline TSample blackman(const TSample &x)
 {
-	return (TSample)0.42659 -
-	       (TSample)0.49656 * cos((TSample)2.0 * (TSample)M_PI * x) +
-		   (TSample)0.076849 * cos((TSample)4.0 * x);
+    return (TSample)0.42659 -
+           (TSample)0.49656 * cos((TSample)2.0 * (TSample)M_PI * x) +
+           (TSample)0.076849 * cos((TSample)4.0 * x);
 }
 
 template <class TSample>
 inline TSample nuttall(const TSample &x)
 {
-	return (TSample)0.355768 -
-	       (TSample)0.487396 * cos((TSample)2.0 * (TSample)M_PI * x) +
-		   (TSample)0.144232 * cos((TSample)4.0 * (TSample)M_PI * x) -
-		   (TSample)0.012604 * cos((TSample)6.0 * (TSample)M_PI * x);
+    return (TSample)0.355768 -
+           (TSample)0.487396 * cos((TSample)2.0 * (TSample)M_PI * x) +
+           (TSample)0.144232 * cos((TSample)4.0 * (TSample)M_PI * x) -
+           (TSample)0.012604 * cos((TSample)6.0 * (TSample)M_PI * x);
 }
 
 template <class TSample>
 inline TSample blackmannuttall(const TSample &x)
 {
-	return (TSample)0.3635819 -
-	       (TSample)0.4891775 * cos((TSample)2.0 * (TSample)M_PI * x) +
-		   (TSample)0.1365995 * cos((TSample)4.0 * (TSample)M_PI * x) -
-		   (TSample)0.0106411 * cos((TSample)6.0 * (TSample)M_PI * x);
+    return (TSample)0.3635819 -
+           (TSample)0.4891775 * cos((TSample)2.0 * (TSample)M_PI * x) +
+           (TSample)0.1365995 * cos((TSample)4.0 * (TSample)M_PI * x) -
+           (TSample)0.0106411 * cos((TSample)6.0 * (TSample)M_PI * x);
 }
 
 template <class TSample>
 inline TSample blackmanharris(const TSample &x)
 {
-	return (TSample)0.35875 -
-	       (TSample)0.48829 * cos((TSample)2.0 * (TSample)M_PI * x) +
-		   (TSample)0.14128 * cos((TSample)4.0 * (TSample)M_PI * x) -
-		   (TSample)0.01168 * cos((TSample)6.0 * (TSample)M_PI * x);
+    return (TSample)0.35875 -
+           (TSample)0.48829 * cos((TSample)2.0 * (TSample)M_PI * x) +
+           (TSample)0.14128 * cos((TSample)4.0 * (TSample)M_PI * x) -
+           (TSample)0.01168 * cos((TSample)6.0 * (TSample)M_PI * x);
 }
 
 template <class TSample>
 inline TSample flattop(const TSample &x)
 {
-	return (TSample)0.21557895 -
-	       (TSample)0.41663158 * cos((TSample)2.0 * (TSample)M_PI * x) +
-		   (TSample)0.277263158 * cos((TSample)4.0 * (TSample)M_PI * x) -
-		   (TSample)0.083578947 * cos((TSample)6.0 * (TSample)M_PI * x) +
-		   (TSample)0.006947368 * cos((TSample)8.0 * (TSample)M_PI * x);
+    return (TSample)0.21557895 -
+           (TSample)0.41663158 * cos((TSample)2.0 * (TSample)M_PI * x) +
+           (TSample)0.277263158 * cos((TSample)4.0 * (TSample)M_PI * x) -
+           (TSample)0.083578947 * cos((TSample)6.0 * (TSample)M_PI * x) +
+           (TSample)0.006947368 * cos((TSample)8.0 * (TSample)M_PI * x);
 }
 
 template <class TSample>
 inline TSample bartletthann(const TSample &x)
 {
-	return (TSample)0.62 -
-	       (TSample)0.48 * abs(x - (TSample)0.5) -
-		   (TSample)0.38 * cos((TSample)2.0 * (TSample)M_PI * x);
+    return (TSample)0.62 -
+           (TSample)0.48 * abs(x - (TSample)0.5) -
+           (TSample)0.38 * cos((TSample)2.0 * (TSample)M_PI * x);
 }
 
 template <class TSample>
 inline TSample rectangular(const TSample &x)
 {
     return (TSample)1.0;
+}
+
 }
 
 #endif // WINDOW_FUNCTIONS_H_

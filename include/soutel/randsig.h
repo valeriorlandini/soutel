@@ -28,6 +28,9 @@ SOFTWARE.
 #include <iostream>
 #include <random>
 
+namespace soutel
+{
+
 template <class TSample>
 class Randsig
 {
@@ -39,6 +42,7 @@ public:
     void set_frequency(const TSample &frequency);
 
     TSample get_sample_rate();
+    TSample get_frequency();
 
     void reset();
 
@@ -66,7 +70,7 @@ template <class TSample>
 Randsig<TSample>::Randsig(const TSample &sample_rate, const TSample &frequency)
 {
     frequency_ = frequency;
-    
+
     set_sample_rate(sample_rate);
 
     gen_.seed(rd_());
@@ -93,9 +97,15 @@ void Randsig<TSample>::set_frequency(const TSample &frequency)
 }
 
 template <class TSample>
-TSample Ransig<TSample>::get_sample_rate()
+TSample Randsig<TSample>::get_sample_rate()
 {
     return sample_rate_;
+}
+
+template <class TSample>
+TSample Randsig<TSample>::get_frequency()
+{
+    return frequency_;
 }
 
 template <class TSample>
@@ -123,6 +133,8 @@ inline TSample Randsig<TSample>::run()
     output_ = current_ * ((TSample)1.0 - ratio) + next_ * ratio;
 
     return output_;
+}
+
 }
 
 #endif // RANDSIG_H_

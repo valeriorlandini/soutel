@@ -27,11 +27,14 @@ SOFTWARE.
 #include <algorithm>
 #include <cmath>
 
+namespace soutel
+{
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
-enum BLWaveforms
+enum class BLWaveforms
 {
     SINE,
     TRIANGLE,
@@ -46,8 +49,8 @@ public:
     BLOsc(const TSample &sample_rate = (TSample)44100.0,
           const TSample &frequency = (TSample)0.0);
 
-    bool set_sample_rate(const TSample &sample_rate);
-    bool set_frequency(const TSample &frequency);
+    void set_sample_rate(const TSample &sample_rate);
+    void set_frequency(const TSample &frequency);
     void reset();
 
     TSample get_sample_rate();
@@ -103,59 +106,36 @@ BLOsc<TSample>::BLOsc(const TSample &sample_rate, const TSample &frequency)
 {
     frequency_ = frequency;
 
-    if (sample_rate > 0.0)
-    {
-        set_sample_rate(sample_rate);
-    }
-    else
-    {
-        set_sample_rate(44100.0);
-    }
+    set_sample_rate(sample_rate);
 
     reset();
 }
 
 template <class TSample>
-bool BLOsc<TSample>::set_sample_rate(const TSample &sample_rate)
+void BLOsc<TSample>::set_sample_rate(const TSample &sample_rate)
 {
-    if (sample_rate > 0.0)
-    {
-        sample_rate_ = sample_rate;
-        half_sample_rate_ = sample_rate_ * (TSample)0.5;
-        inv_sample_rate_ = (TSample)1.0 / sample_rate_;
+    sample_rate_ = std::max((TSample)1.0, sample_rate);
+    half_sample_rate_ = sample_rate_ * (TSample)0.5;
+    inv_sample_rate_ = (TSample)1.0 / sample_rate_;
 
-        set_frequency(frequency_);
-
-        return true;
-    }
-
-    return false;
+    set_frequency(frequency_);
 }
 
 template <class TSample>
-bool BLOsc<TSample>::set_frequency(const TSample &frequency)
+void BLOsc<TSample>::set_frequency(const TSample &frequency)
 {
-    if (frequency < half_sample_rate_)
-    {
-        frequency_ = frequency;
-    }
-    else
-    {
-        frequency_ = half_sample_rate_ * 0.999;
-    }
+    frequency_ = std::clamp(frequency, half_sample_rate_ * (TSample)-0.999, half_sample_rate_ * (TSample)0.999);
 
     step_ = frequency_ * inv_sample_rate_;
 
     if (frequency != 0.0)
     {
-        harmonics_ = std::min(30.0, floor(half_sample_rate_ / abs(frequency_)));
+        harmonics_ = std::min((TSample)30.0, floor(half_sample_rate_ / abs(frequency_)));
     }
     else
     {
-        harmonics_ = 0.0;
+        harmonics_ = (TSample)0.0;
     }
-
-    return true;
 }
 
 template <class TSample>
@@ -229,14 +209,16 @@ inline bool BLOsc<TSample>::run(TSample &sine_out, TSample &triangle_out,
 
 template <class TSample>
 inline void BLOsc<TSample>::get_last_sample(TSample &sine_out,
-                                            TSample &triangle_out,
-                                            TSample &saw_out,
-                                            TSample &square_out)
+        TSample &triangle_out,
+        TSample &saw_out,
+        TSample &square_out)
 {
     saw_out = saw_out_;
     sine_out = sine_out_;
     triangle_out = triangle_out_;
     square_out = square_out_;
+}
+
 }
 
 #endif // BLOSC_H_

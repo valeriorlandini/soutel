@@ -27,6 +27,9 @@ SOFTWARE.
 #include <cmath>
 #include <vector>
 
+namespace soutel
+{
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -61,10 +64,12 @@ std::vector<TSample> resize_chunk(const std::vector<TSample> &chunk, const unsig
         int in_a = (int)floor(in_pos);
         int in_b = (int)ceil(in_pos) % chunk.size();
         TSample in_t = in_pos - (TSample)in_a;
-        output.at(i) = cosip(chunk.at(in_a), chunk.at(in_b), in_t);      
+        output.at(i) = cosip(chunk.at(in_a), chunk.at(in_b), in_t);
     }
 
     return output;
+}
+
 }
 
 #endif // INTERP_H_

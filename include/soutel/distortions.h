@@ -26,6 +26,9 @@ SOFTWARE.
 #include <algorithm>
 #include <cmath>
 
+namespace soutel
+{
+
 template <class TSample>
 inline TSample symmetrical_soft_clip(const TSample &sample,
                                      const TSample &threshold = (TSample)0.333)
@@ -40,7 +43,7 @@ inline TSample symmetrical_soft_clip(const TSample &sample,
     else if (abs_sample >= threshold && abs_sample < ((TSample)2.0 * threshold))
     {
         sample_out = ((TSample)3.0 - std::pow(((TSample)2.0 -
-                     (TSample)3.0 * abs_sample), (TSample)2.0)) /
+                                               (TSample)3.0 * abs_sample), (TSample)2.0)) /
                      std::copysign((TSample)3.0, sample);
     }
     else
@@ -68,11 +71,13 @@ inline TSample bitcrush(const TSample &sample, const TSample &bit_depth, const T
     unsigned long in = (unsigned long)std::round(((TSample)1.0 +
                        std::clamp(sample, (TSample)-1.0, (TSample)1.0)) *
                        (TSample)0.5 * (std::pow((TSample)2.0, bit_depth) -
-                       (TSample)1.0));
+                                       (TSample)1.0));
 
     return mix * ((((TSample)in / (std::pow((TSample)2.0, bit_depth) -
-           (TSample)1.0)) * (TSample)2.0) - (TSample)1.0)
+                                   (TSample)1.0)) * (TSample)2.0) - (TSample)1.0)
            + ((TSample)1.0 - mix) * sample;
+}
+
 }
 
 #endif // DISTORTIONS_H_

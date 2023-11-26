@@ -28,6 +28,9 @@ SOFTWARE.
 #include <deque>
 #include <iostream>
 
+namespace soutel
+{
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -140,27 +143,27 @@ void Biquad<TSample>::set_cutoff(const TSample &cutoff)
 
     switch (type_)
     {
-        case LOWPASS:
+    case LOWPASS:
         b0_ = kkq / (kkq + k_ + q_);
         b1_ = (TSample)2.0 * b0_;
         b2_ = b0_;
         break;
-        case HIPASS:
+    case HIPASS:
         b0_ = q_ / (kkq + k_ + q_);
         b1_ = (TSample)-2.0 * b0_;
         b2_ = b0_;
         break;
-        case BANDPASS:
+    case BANDPASS:
         b0_ = k_ / (kkq + k_ + q_);
         b1_ = (TSample)0.0;
         b2_ = (TSample)-1.0 * b0_;
         break;
-        case BANDREJECT:
+    case BANDREJECT:
         b0_ = (q_ * ((TSample)1.0 + (k_ * k_))) / (kkq + k_ + q_);
         b1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
         b2_ = b0_;
         break;
-        case ALLPASS:
+    case ALLPASS:
         b0_ = (kkq - k_ + q_) / (kkq + k_ + q_);
         b1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
         b2_ = (TSample)1.0;
@@ -241,6 +244,8 @@ template <class TSample>
 inline TSample Biquad<TSample>::get_last_sample()
 {
     return output_;
+}
+
 }
 
 #endif // BIQUAD_H_

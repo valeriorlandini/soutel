@@ -27,6 +27,9 @@ SOFTWARE.
 
 #include "delay.h"
 
+namespace soutel
+{
+
 template <class TSample>
 class Allpass
 {
@@ -173,6 +176,8 @@ template <class TSample>
 inline TSample Allpass<TSample>::get_last_sample()
 {
     return output_;
+}
+
 }
 
 #endif // ALLPASS_H_

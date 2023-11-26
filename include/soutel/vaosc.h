@@ -27,17 +27,12 @@ SOFTWARE.
 #include <cmath>
 #include <iostream>
 
+namespace soutel
+{
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-
-enum VAWaveforms
-{
-    SINE,
-    TRIANGLE,
-    SAW,
-    PULSE
-};
 
 template <class TSample>
 class VAOsc
@@ -47,10 +42,14 @@ public:
           const TSample &frequency = (TSample)0.0,
           const TSample &pulse_width = (TSample)0.5);
 
-    bool set_sample_rate(const TSample &sample_rate);
-    bool set_frequency(const TSample &frequency);
+    void set_sample_rate(const TSample &sample_rate);
+    void set_frequency(const TSample &frequency);
     void set_pulse_width(const TSample &pulse_width);
     void reset();
+
+    TSample get_sample_rate();
+    TSample get_frequency();
+    TSample get_pulse_width();
 
     inline bool run();
     inline bool run(TSample &sine_out, TSample &triangle_out, TSample &saw_out,
@@ -76,9 +75,11 @@ public:
     };
 
 private:
-    TSample frequency_;
+    TSample sample_rate_;
     TSample inv_sample_rate_;
     TSample half_sample_rate_;
+
+    TSample frequency_;
 
     TSample step_;
     TSample saw_out_;
@@ -93,14 +94,7 @@ VAOsc<TSample>::VAOsc(const TSample &sample_rate, const TSample &frequency, cons
 {
     frequency_ = frequency;
 
-    if (sample_rate > (TSample)0.0)
-    {
-        set_sample_rate(sample_rate);
-    }
-    else
-    {
-        set_sample_rate((TSample)44100.0);
-    }
+    set_sample_rate(sample_rate);
 
     set_pulse_width(pulse_width);
 
@@ -108,39 +102,49 @@ VAOsc<TSample>::VAOsc(const TSample &sample_rate, const TSample &frequency, cons
 }
 
 template <class TSample>
-bool VAOsc<TSample>::set_sample_rate(const TSample &sample_rate)
+void VAOsc<TSample>::set_sample_rate(const TSample &sample_rate)
 {
-    if (sample_rate > 0.0)
-    {
-        half_sample_rate_ = sample_rate * (TSample)0.5;
-        inv_sample_rate_ = (TSample)1.0 / sample_rate;
+    sample_rate_ = std::max((TSample)1.0, sample_rate);
+    half_sample_rate_ = sample_rate_ * (TSample)0.5;
+    inv_sample_rate_ = (TSample)1.0 / sample_rate_;
 
-        set_frequency(frequency_);
+    set_frequency(frequency_);
 
-        reset();
-
-        return true;
-    }
-
-    std::cerr << "VAOsc::sample_rate must be greater than zero\n";
-
-    return false;
+    reset();
 }
 
 template <class TSample>
-bool VAOsc<TSample>::set_frequency(const TSample &frequency)
+void VAOsc<TSample>::set_frequency(const TSample &frequency)
 {
     frequency_ = frequency;
 
     step_ = (TSample)2.0 * (frequency_ * inv_sample_rate_);
-
-    return true;
 }
 
 template <class TSample>
-inline void VAOsc<TSample>::set_pulse_width(const TSample &pulse_width)
+void VAOsc<TSample>::set_pulse_width(const TSample &pulse_width)
 {
     pulse_width_ = std::clamp(pulse_width, (TSample)0.0, (TSample)1.0);
+}
+
+
+template <class TSample>
+TSample VAOsc<TSample>::get_sample_rate()
+{
+    return sample_rate_;
+}
+
+
+template <class TSample>
+TSample VAOsc<TSample>::get_frequency()
+{
+    return frequency_;
+}
+
+template <class TSample>
+TSample VAOsc<TSample>::get_pulse_width()
+{
+    return pulse_width_;
 }
 
 template <class TSample>
@@ -158,7 +162,7 @@ inline bool VAOsc<TSample>::run()
     bool new_cycle = false;
 
     saw_out_ += step_;
-    if (fabs(saw_out_) > (TSample)1.0)
+    if (abs(saw_out_) > (TSample)1.0)
     {
         saw_out_ = fmod(saw_out_ + (TSample)1.0, (TSample)2.0) - copysign((TSample)1.0, saw_out_);
         new_cycle = true;
@@ -193,14 +197,16 @@ inline bool VAOsc<TSample>::run(TSample &sine_out, TSample &triangle_out,
 
 template <class TSample>
 inline void VAOsc<TSample>::get_last_sample(TSample &sine_out,
-                                            TSample &triangle_out,
-                                            TSample &saw_out,
-                                            TSample &pulse_out)
+        TSample &triangle_out,
+        TSample &saw_out,
+        TSample &pulse_out)
 {
     saw_out = saw_out_;
     sine_out = sine_out_;
     triangle_out = triangle_out_;
     pulse_out = pulse_out_;
+}
+
 }
 
 #endif // VAOSC_H_

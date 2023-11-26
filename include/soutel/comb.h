@@ -27,6 +27,9 @@ SOFTWARE.
 
 #include "delay.h"
 
+namespace soutel
+{
+
 template <class TSample>
 class Comb
 {
@@ -208,6 +211,8 @@ template <class TSample>
 inline TSample Comb<TSample>::get_last_sample()
 {
     return output_;
+}
+
 }
 
 #endif // COMB_H_

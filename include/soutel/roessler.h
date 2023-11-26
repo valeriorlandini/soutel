@@ -20,17 +20,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************/
 
-#ifndef ROESSLER_HPP_
-#define ROESSLER_HPP_
+#ifndef ROESSLER_H_
+#define ROESSLER_H_
+
+namespace soutel
+{
 
 template <class TSample>
 class Roessler
 {
-    public:
+public:
     Roessler(const TSample &a = 0.2, const TSample &b = 0.2,
-           const TSample &c = 5.7, const TSample &x = 0.1,
-           const TSample &y = 0.1, const TSample &z = 0.1,
-           const TSample &t = 0.099)
+             const TSample &c = 5.7, const TSample &x = 0.1,
+             const TSample &y = 0.1, const TSample &z = 0.1,
+             const TSample &t = 0.099)
     {
         a_ = a;
         b_ = b;
@@ -90,27 +93,27 @@ class Roessler
     {
         return a_;
     }
-    
+
     TSample get_b()
     {
         return b_;
     }
-    
+
     TSample get_c()
     {
         return c_;
     }
-    
+
     TSample get_x()
     {
         return x_;
     }
-    
+
     TSample get_y()
     {
         return y_;
     }
-    
+
     TSample get_z()
     {
         return z_;
@@ -146,10 +149,12 @@ class Roessler
         z = z_;
     }
 
-    private:
+private:
     TSample a_, b_, c_;
     TSample x_, y_, z_;
     TSample t_;
 };
+
+}
 
 #endif // ROESSLER_HPP_

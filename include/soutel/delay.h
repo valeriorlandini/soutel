@@ -30,6 +30,9 @@ SOFTWARE.
 
 #include "interp.h"
 
+namespace soutel
+{
+
 template <class TSample>
 class Delay
 {
@@ -215,6 +218,8 @@ template <class TSample>
 inline TSample Delay<TSample>::get_last_sample()
 {
     return output_;
+}
+
 }
 
 #endif // DELAY_H_

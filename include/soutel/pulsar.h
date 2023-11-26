@@ -31,8 +31,10 @@ SOFTWARE.
 
 #include "window_functions.h"
 
+namespace soutel
+{
 
-enum PulsarWaveforms
+enum class PulsarWaveforms
 {
     SINE,
     TRIANGLE,
@@ -43,7 +45,7 @@ enum PulsarWaveforms
     PHASOR
 };
 
-enum PulsarWindows
+enum class PulsarWindows
 {
     HANN,
     HAMMING,
@@ -61,28 +63,36 @@ class Pulsar
 {
 public:
     Pulsar(const TSample &sample_rate = 44100.0,
-          const TSample &frequency = 0.0,
-          const TSample &duty_cycle = 0.5,
-          const PulsarWaveforms &waveform = SINE,
-          const PulsarWindows &window = RECTANGULAR);
+           const TSample &frequency = 0.0,
+           const TSample &duty_cycle = 0.5,
+           const PulsarWaveforms &waveform = PulsarWaveforms::SINE,
+           const PulsarWindows &window = PulsarWindows::RECTANGULAR);
 
-    bool set_sample_rate(const TSample &sample_rate);
-    bool set_frequency(const TSample &frequency);
-    bool set_duty_cycle(const TSample &duty_cycle);
+    void set_sample_rate(const TSample &sample_rate);
+    void set_frequency(const TSample &frequency);
+    void set_duty_cycle(const TSample &duty_cycle);
     void set_waveform(const PulsarWaveforms &waveform);
     void set_window(const PulsarWindows &window);
     void reset();
+
+    TSample get_sample_rate();
+    TSample get_frequency();
+    TSample get_duty_cycle();
+    PulsarWaveforms get_waveform();
+    PulsarWindows get_window();
 
     inline TSample run();
 
     inline TSample get_last_sample();
 
 private:
+    TSample sample_rate_;
+    TSample inv_sample_rate_;
+    TSample half_sample_rate_;
+
     TSample frequency_;
     TSample duty_cycle_;
     TSample inv_duty_cycle_;
-    TSample inv_sample_rate_;
-    TSample half_sample_rate_;
 
     TSample wave_step_;
     TSample wave_ramp_;
@@ -96,8 +106,8 @@ private:
     PulsarWaveforms waveform_;
     PulsarWindows window_;
 
-    const TSample m_2pi_ = 2.0 * M_PI;
-    const TSample inv_rand_max2_ = 2.0 * (1.0 / RAND_MAX);
+    const TSample m_2pi_ = (TSample)2.0 * (TSample)M_PI;
+    const TSample inv_rand_max2_ = (TSample)2.0 * ((TSample)1.0 / (TSample)RAND_MAX);
 };
 
 template <class TSample>
@@ -126,67 +136,49 @@ Pulsar<TSample>::Pulsar(const TSample &sample_rate,
 }
 
 template <class TSample>
-bool Pulsar<TSample>::set_sample_rate(const TSample &sample_rate)
+void Pulsar<TSample>::set_sample_rate(const TSample &sample_rate)
 {
-    if (sample_rate > 0.0)
-    {
-        half_sample_rate_ = sample_rate * 0.5;
-        inv_sample_rate_ = 1.0 / sample_rate;
+    sample_rate_ = std::max((TSample)1.0, sample_rate);
+    half_sample_rate_ = sample_rate_ * (TSample)0.5;
+    inv_sample_rate_ = (TSample)1.0 / sample_rate_;
 
-        set_frequency(frequency_);
+    set_frequency(frequency_);
 
-        return true;
-    }
-
-    std::cerr << "Pulsar::sample_rate must be greater than zero\n";
-
-    return false;
+    reset();
 }
 
 template <class TSample>
-bool Pulsar<TSample>::set_frequency(const TSample &frequency)
+void Pulsar<TSample>::set_frequency(const TSample &frequency)
 {
-    if (frequency < half_sample_rate_)
-    {
-        frequency_ = frequency;
-    }
-    else
-    {
-        frequency_ = half_sample_rate_ * 0.999;
-    }
-
+    frequency_ = std::clamp(frequency, half_sample_rate_ * (TSample)-0.999, half_sample_rate_ * (TSample)0.999);
     step_ = frequency_ * inv_sample_rate_;
     wave_step_ = frequency_ * inv_sample_rate_ * inv_duty_cycle_;
 
-    if (frequency != 0.0)
+    if (frequency != (TSample)0.0)
     {
-        harmonics_ = std::min(30.0, floor(half_sample_rate_ / abs(frequency_)));
+        harmonics_ = std::min((TSample)30.0, floor(half_sample_rate_ / abs(frequency_)));
     }
     else
     {
-        harmonics_ = 0.0;
+        harmonics_ = (TSample)0.0;
     }
-
-    return true;
 }
 
 template <class TSample>
-bool Pulsar<TSample>::set_duty_cycle(const TSample &duty_cycle)
+void Pulsar<TSample>::set_duty_cycle(const TSample &duty_cycle)
 {
-    duty_cycle_ = std::clamp(duty_cycle, 0.0, 1.0);
+    duty_cycle_ = std::clamp(duty_cycle, (TSample)0.0, (TSample)1.0);
 
-    if (duty_cycle_ > 0.0)
+    if (duty_cycle_ > (TSample)0.0)
     {
-        inv_duty_cycle_ = 1.0 / duty_cycle_;
+        inv_duty_cycle_ = (TSample)1.0 / duty_cycle_;
     }
     else
     {
-        inv_duty_cycle_ = 0.0;
+        inv_duty_cycle_ = (TSample)0.0;
     }
 
     wave_step_ = frequency_ * inv_sample_rate_ * inv_duty_cycle_;
-
-    return true;
 }
 
 template <class TSample>
@@ -199,6 +191,42 @@ template <class TSample>
 void Pulsar<TSample>::set_window(const PulsarWindows &window)
 {
     window_ = window;
+}
+
+template <class TSample>
+void Pulsar<TSample>::reset()
+{
+    ramp_ = 0.0;
+}
+
+template <class TSample>
+TSample Pulsar<TSample>::get_sample_rate()
+{
+    return sample_rate_;
+}
+
+template <class TSample>
+TSample Pulsar<TSample>::get_frequency()
+{
+    return frequency_;
+}
+
+template <class TSample>
+TSample Pulsar<TSample>::get_duty_cycle()
+{
+    return duty_cycle_;
+}
+
+template <class TSample>
+PulsarWaveforms Pulsar<TSample>::get_waveform()
+{
+    return waveform_;
+}
+
+template <class TSample>
+PulsarWindows Pulsar<TSample>::get_window()
+{
+    return window_;
 }
 
 template <class TSample>
@@ -217,7 +245,7 @@ inline TSample Pulsar<TSample>::run()
         {
             ramp_ -=  1.0 * copysign(1.0, ramp_);
         }
-        
+
         wave_ramp_ =  ramp_ * inv_duty_cycle_;
 
         gen_wave_ = true;
@@ -226,7 +254,7 @@ inline TSample Pulsar<TSample>::run()
     if (gen_wave_)
     {
         wave_ramp_ += wave_step_;
-        if (abs(wave_ramp_) > 1.0)
+        if (abs(wave_ramp_) > (TSample)1.0)
         {
             gen_wave_ = false;
             return output_;
@@ -234,65 +262,65 @@ inline TSample Pulsar<TSample>::run()
 
         switch (waveform_)
         {
-            case SINE:
+        case PulsarWaveforms::SINE:
             output_ = sin(wave_ramp_ * m_2pi_);
             break;
-            case SAW:
-            for (TSample harmonic = 1.0; harmonic <= harmonics_; harmonic++)
+        case PulsarWaveforms::SAW:
+            for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic++)
             {
-                output_ += sin((-wave_ramp_ + 0.5) * m_2pi_ * harmonic) / harmonic;
+                output_ += sin((-wave_ramp_ + (TSample)0.5) * m_2pi_ * harmonic) / harmonic;
             }
-            output_ *= 0.55;
+            output_ *= (TSample)0.55;
             break;
-            case SQUARE:
-            for (TSample harmonic = 1.0; harmonic <= harmonics_; harmonic += 2)
+        case PulsarWaveforms::SQUARE:
+            for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic += (TSample)2)
             {
                 output_ += sin(wave_ramp_ * m_2pi_ * harmonic) / harmonic;
             }
-            output_ *= 1.07;
+            output_ *= (TSample)1.07;
             break;
-            case TRIANGLE:
-            for (TSample harmonic = 1.0; harmonic <= harmonics_; harmonic += 2)
+        case PulsarWaveforms::TRIANGLE:
+            for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic += (TSample)2)
             {
-                output_ += cos((wave_ramp_ + 0.75) * m_2pi_ * harmonic) / (harmonic * harmonic);
+                output_ += cos((wave_ramp_ + (TSample)0.75) * m_2pi_ * harmonic) / (harmonic * harmonic);
             }
-            output_ *= 0.82;
+            output_ *= (TSample)0.82;
             break;
-            case NOISE:
-            output_ = (rand() * inv_rand_max2_) - 1.0;
+        case PulsarWaveforms::NOISE:
+            output_ = ((TSample)rand() * inv_rand_max2_) - (TSample)1.0;
             break;
-            case DC:
-            output_ = 1.0;
+        case PulsarWaveforms::DC:
+            output_ = (TSample)1.0;
             break;
-            case PHASOR:
+        case PulsarWaveforms::PHASOR:
             output_ = wave_ramp_;
             break;
         }
 
         switch (window_)
-        {    
-            case HANN:
+        {
+        case PulsarWindows::HANN:
             output_ *= hann(wave_ramp_);
             break;
-            case HAMMING:
+        case PulsarWindows::HAMMING:
             output_ *= hamming(wave_ramp_);
             break;
-            case BLACKMAN:
+        case PulsarWindows::BLACKMAN:
             output_ *= blackman(wave_ramp_);
             break;
-            case NUTTALL:
+        case PulsarWindows::NUTTALL:
             output_ *= nuttall(wave_ramp_);
             break;
-            case BLACKMANNUTTALL:
+        case PulsarWindows::BLACKMANNUTTALL:
             output_ *= blackmannuttall(wave_ramp_);
             break;
-            case BLACKMANHARRIS:
+        case PulsarWindows::BLACKMANHARRIS:
             output_ *= blackmanharris(wave_ramp_);
             break;
-            case FLATTOP:
+        case PulsarWindows::FLATTOP:
             output_ *= flattop(wave_ramp_);
             break;
-            case BARTLETTHANN:
+        case PulsarWindows::BARTLETTHANN:
             output_ *= bartletthann(wave_ramp_);
             break;
         }
@@ -305,6 +333,8 @@ template <class TSample>
 inline TSample Pulsar<TSample>::get_last_sample()
 {
     return output_;
+}
+
 }
 
 #endif // PULSAR_H_
