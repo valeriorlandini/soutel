@@ -23,7 +23,7 @@ SOFTWARE.
 #ifndef LORENZ_H_
 #define LORENZ_H_
 
-#include <iostream>
+#include <algorithm>
 
 namespace soutel
 {
@@ -32,21 +32,21 @@ template <class TSample>
 class Lorenz
 {
 public:
-    Lorenz(const TSample &sigma = 10.0, const TSample &rho = 28.0,
-           const TSample &beta = 8.0/3.0, const TSample &x = 0.01,
-           const TSample &y = 0.0, const TSample &z = 0.0,
-           const TSample &t = 0.099)
+    Lorenz(const TSample &sigma = (TSample)10.0,
+           const TSample &rho = (TSample)28.0,
+           const TSample &beta = (TSample)(8.0 / 3.0),
+           const TSample &x = (TSample)0.01,
+           const TSample &y = (TSample)0.0,
+           const TSample &z = (TSample)0.0,
+           const TSample &t = (TSample)0.099)
     {
-        sigma_ = sigma;
-        rho_ = rho;
-        beta_ = beta;
-        x_ = x;
-        y_ = y;
-        z_ = z;
-        if (!set_t(t))
-        {
-            set_t(0.00125);
-        }
+        set_sigma(sigma);
+        set_rho(rho);
+        set_beta(beta);
+        set_x(x);
+        set_y(y);
+        set_z(z);
+        set_t(t);
     }
 
     void set_sigma(const TSample &sigma)
@@ -79,16 +79,9 @@ public:
         z_ = z;
     }
 
-    bool set_t(const TSample &t)
+    void set_t(const TSample &t)
     {
-        if (t >= 0.0 && t < 0.025)
-        {
-            t_ = t;
-
-            return true;
-        }
-
-        return false;
+        t_ = std::clamp(t, (TSample)0.0, (TSample)0.025);
     }
 
 

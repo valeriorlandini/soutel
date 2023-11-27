@@ -23,6 +23,8 @@ SOFTWARE.
 #ifndef ROESSLER_H_
 #define ROESSLER_H_
 
+#include <algorithm>
+
 namespace soutel
 {
 
@@ -30,21 +32,21 @@ template <class TSample>
 class Roessler
 {
 public:
-    Roessler(const TSample &a = 0.2, const TSample &b = 0.2,
-             const TSample &c = 5.7, const TSample &x = 0.1,
-             const TSample &y = 0.1, const TSample &z = 0.1,
-             const TSample &t = 0.099)
+    Roessler(const TSample &a = (TSample)0.2,
+             const TSample &b = (TSample)0.2,
+             const TSample &c = (TSample)5.7,
+             const TSample &x = (TSample)0.1,
+             const TSample &y = (TSample)0.1,
+             const TSample &z = (TSample)0.1,
+             const TSample &t = (TSample)0.099)
     {
-        a_ = a;
-        b_ = b;
-        c_ = c;
-        x_ = x;
-        y_ = y;
-        z_ = z;
-        if (!set_t(t))
-        {
-            set_t(0.099);
-        }
+        set_a(a);
+        set_b(b);
+        set_c(c);
+        set_x(x);
+        set_y(y);
+        set_z(z);
+        set_t(t);
     }
 
     void set_a(const TSample &a)
@@ -77,16 +79,9 @@ public:
         z_ = z;
     }
 
-    bool set_t(const TSample &t)
+    void set_t(const TSample &t)
     {
-        if (t >= 0.0 && t < 0.1)
-        {
-            t_ = t;
-
-            return true;
-        }
-
-        return false;
+        t_ = std::clamp(t, (TSample)0.0, (TSample)0.1);
     }
 
     TSample get_a()
@@ -123,7 +118,7 @@ public:
     {
         if (t_ > 0.0)
         {
-            TSample x_1 = (-1.0 * y_) - z_;
+            TSample x_1 = ((TSample)-1.0 * y_) - z_;
             TSample y_1 = x_ + (a_ * y_);
             TSample z_1 = b_ + (z_ * (x_ - c_));
 
@@ -133,9 +128,9 @@ public:
 
             if (isnan(x_) || isnan(y_) || isnan(z_))
             {
-                x_ = 0.1;
-                y_ = 0.1;
-                z_ = 0.1;
+                x_ = (TSample)0.1;
+                y_ = (TSample)0.1;
+                z_ = (TSample)0.1;
             }
         }
     }

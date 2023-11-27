@@ -35,7 +35,7 @@ namespace soutel
 #define M_PI 3.14159265358979323846
 #endif
 
-enum BQFilters
+enum class BQFilters
 {
     LOWPASS,
     HIPASS,
@@ -51,7 +51,7 @@ public:
     Biquad(const TSample &sample_rate = (TSample)44100.0,
            const TSample &cutoff = (TSample)11025.0,
            const TSample &q = (TSample)0.707,
-           const BQFilters &type = LOWPASS);
+           const BQFilters &type = BQFilters::LOWPASS);
 
     void set_sample_rate(const TSample &sample_rate);
     void set_cutoff(const TSample &cutoff);
@@ -99,13 +99,13 @@ Biquad<TSample>::Biquad(const TSample &sample_rate, const TSample &cutoff,
 
     q_ = std::max((TSample)0.001, q);
 
-    if (type >= LOWPASS && type <= ALLPASS)
+    if (type >= BQFilters::LOWPASS && type <= BQFilters::ALLPASS)
     {
         type_ = type;
     }
     else
     {
-        type_ = LOWPASS;
+        type_ = BQFilters::LOWPASS;
     }
 
     set_cutoff(cutoff);
@@ -143,27 +143,27 @@ void Biquad<TSample>::set_cutoff(const TSample &cutoff)
 
     switch (type_)
     {
-    case LOWPASS:
+    case BQFilters::LOWPASS:
         b0_ = kkq / (kkq + k_ + q_);
         b1_ = (TSample)2.0 * b0_;
         b2_ = b0_;
         break;
-    case HIPASS:
+    case BQFilters::HIPASS:
         b0_ = q_ / (kkq + k_ + q_);
         b1_ = (TSample)-2.0 * b0_;
         b2_ = b0_;
         break;
-    case BANDPASS:
+    case BQFilters::BANDPASS:
         b0_ = k_ / (kkq + k_ + q_);
         b1_ = (TSample)0.0;
         b2_ = (TSample)-1.0 * b0_;
         break;
-    case BANDREJECT:
+    case BQFilters::BANDREJECT:
         b0_ = (q_ * ((TSample)1.0 + (k_ * k_))) / (kkq + k_ + q_);
         b1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
         b2_ = b0_;
         break;
-    case ALLPASS:
+    case BQFilters::ALLPASS:
         b0_ = (kkq - k_ + q_) / (kkq + k_ + q_);
         b1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
         b2_ = (TSample)1.0;
@@ -182,7 +182,7 @@ void Biquad<TSample>::set_q(const TSample &q)
 template <class TSample>
 void Biquad<TSample>::set_type(const BQFilters &type)
 {
-    if (type >= LOWPASS && type <= ALLPASS)
+    if (type >= BQFilters::LOWPASS && type <= BQFilters::ALLPASS)
     {
         type_ = type;
 
