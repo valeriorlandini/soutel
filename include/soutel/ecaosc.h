@@ -316,6 +316,8 @@ inline TSample ECAOsc<TSample>::cells_to_float_()
     {
         output += pow((TSample)2.0, (TSample)(last_cell - b));
     }
+
+    return output;
 }
 
 }
