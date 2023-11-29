@@ -48,6 +48,8 @@ public:
 
     inline TSample run();
 
+    inline TSample get_last_sample();
+
 private:
     TSample sample_rate_;
     TSample half_sample_rate_;
@@ -132,6 +134,12 @@ inline TSample Randsig<TSample>::run()
 
     output_ = current_ * ((TSample)1.0 - ratio) + next_ * ratio;
 
+    return output_;
+}
+
+template <class TSample>
+inline TSample Randsig<TSample>::get_last_sample()
+{
     return output_;
 }
 
