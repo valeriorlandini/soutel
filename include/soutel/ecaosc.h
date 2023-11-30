@@ -60,6 +60,7 @@ public:
 
     std::array<bool, 8> get_rules();
     uint8_t get_rule_number();
+    std::vector<bool> get_cells();
 
     TSample get_sample_rate();
     TSample get_frequency();
@@ -69,6 +70,10 @@ public:
     inline TSample run();
 
     inline TSample get_last_sample();
+    
+    inline void step();
+    
+    inline TSample cells_to_float();
 
 private:
     TSample sample_rate_;
@@ -91,9 +96,6 @@ private:
     TSample current_;
     TSample next_;
     TSample output_;
-
-    inline void step_();
-    inline TSample cells_to_float_();
 };
 
 template <class TSample>
@@ -187,7 +189,7 @@ void ECAOsc<TSample>::set_rule_number(const uint8_t &rule_number)
 {
     for (int b = 0; b < 8; b++)
     {
-        rules_[b] = (rule_number >> (7 - b)) & 1;
+        rules_[b] = ((rule_number >> b) & 1);
     }
 }
 
@@ -214,7 +216,6 @@ void ECAOsc<TSample>::randomize_status(const TSample &alive_chance)
 {
     for (int s = 0; s < cell_status_.size(); s++)
     {
-
         cell_status_.at(s) = (rand_dist_(gen_) <= alive_chance);
     }
 }
@@ -250,12 +251,18 @@ uint8_t ECAOsc<TSample>::get_rule_number()
 }
 
 template <class TSample>
+std::vector<bool> ECAOsc<TSample>::get_cells()
+{
+    return cell_status_;
+}
+
+template <class TSample>
 void ECAOsc<TSample>::reset()
 {
     output_ = (TSample)0.0;
     current_ = (TSample)0.0;
-    step_();
-    next_ = cells_to_float_();
+    step();
+    next_ = cells_to_float();
 }
 
 template <class TSample>
@@ -266,9 +273,10 @@ inline TSample ECAOsc<TSample>::run()
     if (sample_count_ > steps_)
     {
         current_ = next_;
-        step_();
-        next_ = cells_to_float_();
+        step();
+        next_ = cells_to_float();
         sample_count_ = (TSample)0.0;
+        std::cout << next_ << std::endl;
     }
 
     TSample ratio = sample_count_ / steps_;
@@ -285,7 +293,7 @@ inline TSample ECAOsc<TSample>::get_last_sample()
 }
 
 template <class TSample>
-inline void ECAOsc<TSample>::step_()
+inline void ECAOsc<TSample>::step()
 {
     std::vector<bool> next_gen;
 
@@ -294,8 +302,8 @@ inline void ECAOsc<TSample>::step_()
         unsigned int value = 0;
         value += (unsigned int)cell_status_.at(std::max(0, c - 1)) * 4;
         value += (unsigned int)cell_status_.at(c) * 2;
-        value += (unsigned int)cell_status_.at(c % cell_status_.size());
-
+        value += (unsigned int)cell_status_.at((c + 1) % cell_status_.size());
+        
         next_gen.push_back(rules_[value]);
     }
 
@@ -306,18 +314,21 @@ inline void ECAOsc<TSample>::step_()
 }
 
 template <class TSample>
-inline TSample ECAOsc<TSample>::cells_to_float_()
+inline TSample ECAOsc<TSample>::cells_to_float()
 {
     TSample output = (TSample)0.0;
     int bits_TSample = sizeof(TSample) * CHAR_BIT;
 
-    int last_cell = std::min(bits_TSample, (int)cell_status_.size() - 1);
-    for (int b = 0; b >= last_cell; b++)
+    int last_cell = std::min(bits_TSample, (int)cell_status_.size());
+    for (int b = 0; b < last_cell; b++)
     {
-        output += pow((TSample)2.0, (TSample)(last_cell - b));
+        if (cell_status_.at(b))
+        {
+            output += pow((TSample)2.0, (TSample)(last_cell - b - 1));
+        }
     }
 
-    return output;
+    return ((TSample)2.0 * output / (TSample)((1 << last_cell) - 1)) - (TSample)1.0;
 }
 
 }
