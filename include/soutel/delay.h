@@ -23,10 +23,6 @@ SOFTWARE.
 #ifndef DELAY_H_
 #define DELAY_H_
 
-#include <algorithm>
-#include <cmath>
-#include <vector>
-
 #include "interp.h"
 
 namespace soutel

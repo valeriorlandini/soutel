@@ -23,8 +23,6 @@ SOFTWARE.
 #ifndef CHEBYSHEV_H_
 #define CHEBYSHEV_H_
 
-#include <cmath>
-
 #include "interp.h"
 
 namespace soutel

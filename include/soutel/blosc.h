@@ -25,7 +25,6 @@ SOFTWARE.
 #define BLOSC_H_
 
 #include <algorithm>
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 namespace soutel

@@ -25,7 +25,6 @@ SOFTWARE.
 
 #include <algorithm>
 #include <array>
-#define _USE_MATH_DEFINES
 #include <cmath>
 #include <deque>
 
@@ -263,7 +262,7 @@ inline void Biquad<TSample>::calc_coeffs_()
     TSample s2v0 = std::sqrt((TSample)2.0 * v0_);
     TSample v0kk = v0_ * k_ * k_;
     TSample bood =  (TSample)1.0 + ((TSample)M_SQRT2 * k_) + (k_ * k_);
-    TSample lcud =  v0_ + s2v0 + (k_ * k_);
+    TSample lcud =  v0_ + (s2v0 * k_) + (k_ * k_);
     TSample hcud = (TSample)1.0 + (s2v0 * k_) + v0kk;
     TSample kiq = k_ / q_;
     TSample bpkd = ((TSample)1.0 + kiq + (k_ * k_));
@@ -314,7 +313,7 @@ inline void Biquad<TSample>::calc_coeffs_()
         else
         {
             a1_ = ((TSample)2.0 * ((k_ * k_) - v0_)) / lcud;
-            a2_ = (v0_ - s2v0 + (k_ * k_)) / lcud;
+            a2_ = (v0_ - (s2v0 * k_) + (k_ * k_)) / lcud;
             b0_ = (v0_ * ((TSample)1.0 + ((TSample)M_SQRT2 * k_) + (k_ * k_))) / lcud;
             b1_ = ((TSample)2.0 * v0_ * ((k_ * k_) - (TSample)1.0)) / lcud;
             b2_ = (v0_ * ((TSample)1.0 - ((TSample)M_SQRT2 * k_) + (k_ * k_))) / lcud;
