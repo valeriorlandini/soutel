@@ -23,8 +23,6 @@ SOFTWARE.
 #ifndef COMB_H_
 #define COMB_H_
 
-#include <iostream>
-
 #include "delay.h"
 
 namespace soutel

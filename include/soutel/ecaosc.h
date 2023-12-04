@@ -70,9 +70,9 @@ public:
     inline TSample run();
 
     inline TSample get_last_sample();
-    
+
     inline void step();
-    
+
     inline TSample cells_to_float();
 
 private:
@@ -303,7 +303,7 @@ inline void ECAOsc<TSample>::step()
         value += (unsigned int)cell_status_.at(std::max(0, c - 1)) * 4;
         value += (unsigned int)cell_status_.at(c) * 2;
         value += (unsigned int)cell_status_.at((c + 1) % cell_status_.size());
-        
+
         next_gen.push_back(rules_[value]);
     }
 

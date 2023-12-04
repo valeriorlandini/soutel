@@ -24,7 +24,6 @@ SOFTWARE.
 #define CRYPTOVERB_H_
 
 #include <array>
-#include <iostream>
 
 #include "allpass.h"
 #include "biquad.h"

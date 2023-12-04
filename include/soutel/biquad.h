@@ -24,9 +24,10 @@ SOFTWARE.
 #define BIQUAD_H_
 
 #include <algorithm>
+#include <array>
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <deque>
-#include <iostream>
 
 namespace soutel
 {
@@ -35,13 +36,20 @@ namespace soutel
 #define M_PI 3.14159265358979323846
 #endif
 
+#ifndef M_SQRT2
+#define M_SQRT2 1.41421356237309504880
+#endif
+
 enum class BQFilters
 {
     LOWPASS,
     HIPASS,
     BANDPASS,
     BANDREJECT,
-    ALLPASS
+    ALLPASS,
+    LOWSHELF,
+    HISHELF,
+    PEAK
 };
 
 template <class TSample>
@@ -51,17 +59,21 @@ public:
     Biquad(const TSample &sample_rate = (TSample)44100.0,
            const TSample &cutoff = (TSample)11025.0,
            const TSample &q = (TSample)0.707,
+           const TSample &gain = (TSample)0.0,
            const BQFilters &type = BQFilters::LOWPASS);
 
     void set_sample_rate(const TSample &sample_rate);
     void set_cutoff(const TSample &cutoff);
     void set_q(const TSample &q);
+    void set_gain(const TSample &gain);
     void set_type(const BQFilters &type);
 
     TSample get_sample_rate();
     TSample get_cutoff();
     TSample get_q();
+    TSample get_gain();
     BQFilters get_type();
+    std::array<TSample, 5> get_coefficients();
 
     void clear();
 
@@ -76,6 +88,8 @@ private:
     TSample inv_sample_rate_;
     TSample cutoff_;
     TSample q_;
+    TSample gain_;
+    TSample v0_;
 
     BQFilters type_;
 
@@ -86,11 +100,13 @@ private:
     TSample b0_, b1_, b2_;
 
     TSample output_;
+
+    inline void calc_coeffs_();
 };
 
 template <class TSample>
 Biquad<TSample>::Biquad(const TSample &sample_rate, const TSample &cutoff,
-                        const TSample &q, const BQFilters &type)
+                        const TSample &q, const TSample &gain, const BQFilters &type)
 {
 
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -98,8 +114,10 @@ Biquad<TSample>::Biquad(const TSample &sample_rate, const TSample &cutoff,
     half_sample_rate_ = sample_rate_ * 0.5;
 
     q_ = std::max((TSample)0.001, q);
+    gain_ = gain;
+    v0_ = std::pow((TSample)10.0, gain_/(TSample)20.0);
 
-    if (type >= BQFilters::LOWPASS && type <= BQFilters::ALLPASS)
+    if (type >= BQFilters::LOWPASS && type <= BQFilters::PEAK)
     {
         type_ = type;
     }
@@ -132,43 +150,9 @@ template <class TSample>
 void Biquad<TSample>::set_cutoff(const TSample &cutoff)
 {
     cutoff_ = std::clamp(cutoff, (TSample)0.001, half_sample_rate_);
+    k_ = std::tan((TSample)M_PI * cutoff_ * inv_sample_rate_);
 
-    k_ = tan((TSample)M_PI * cutoff_ * inv_sample_rate_);
-
-    TSample kkq = k_ * k_ * q_;
-    TSample kkm1 = (k_ * k_) - (TSample)1.0;
-
-    a1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
-    a2_ = (kkq - k_ + q_) / (kkq + k_ + q_);
-
-    switch (type_)
-    {
-    case BQFilters::LOWPASS:
-        b0_ = kkq / (kkq + k_ + q_);
-        b1_ = (TSample)2.0 * b0_;
-        b2_ = b0_;
-        break;
-    case BQFilters::HIPASS:
-        b0_ = q_ / (kkq + k_ + q_);
-        b1_ = (TSample)-2.0 * b0_;
-        b2_ = b0_;
-        break;
-    case BQFilters::BANDPASS:
-        b0_ = k_ / (kkq + k_ + q_);
-        b1_ = (TSample)0.0;
-        b2_ = (TSample)-1.0 * b0_;
-        break;
-    case BQFilters::BANDREJECT:
-        b0_ = (q_ * ((TSample)1.0 + (k_ * k_))) / (kkq + k_ + q_);
-        b1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
-        b2_ = b0_;
-        break;
-    case BQFilters::ALLPASS:
-        b0_ = (kkq - k_ + q_) / (kkq + k_ + q_);
-        b1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
-        b2_ = (TSample)1.0;
-        break;
-    }
+    calc_coeffs_();
 }
 
 template <class TSample>
@@ -176,17 +160,29 @@ void Biquad<TSample>::set_q(const TSample &q)
 {
     q_ = std::max((TSample)0.001, q);
 
-    set_cutoff(cutoff_);
+    calc_coeffs_();
+}
+
+template <class TSample>
+void Biquad<TSample>::set_gain(const TSample &gain)
+{
+    gain_ = gain;
+    v0_ = std::pow((TSample)10.0, gain_/(TSample)20.0);
+
+    if (type_ >= BQFilters::LOWSHELF && type_ <= BQFilters::PEAK)
+    {
+        calc_coeffs_();
+    }
 }
 
 template <class TSample>
 void Biquad<TSample>::set_type(const BQFilters &type)
 {
-    if (type >= BQFilters::LOWPASS && type <= BQFilters::ALLPASS)
+    if (type >= BQFilters::LOWPASS && type <= BQFilters::PEAK)
     {
         type_ = type;
 
-        set_cutoff(cutoff_);
+        calc_coeffs_();
     }
 }
 
@@ -206,6 +202,19 @@ template <class TSample>
 TSample Biquad<TSample>::get_q()
 {
     return q_;
+}
+
+template <class TSample>
+TSample Biquad<TSample>::get_gain()
+{
+    return gain_;
+}
+
+template <class TSample>
+std::array<TSample, 5> Biquad<TSample>::get_coefficients()
+{
+    std::array<TSample, 5> coefficients{a1_, a2_, b0_, b1_, b2_};
+    return coefficients;
 }
 
 template <class TSample>
@@ -244,6 +253,110 @@ template <class TSample>
 inline TSample Biquad<TSample>::get_last_sample()
 {
     return output_;
+}
+
+template <class TSample>
+inline void Biquad<TSample>::calc_coeffs_()
+{
+    TSample kkq = k_ * k_ * q_;
+    TSample kkm1 = (k_ * k_) - (TSample)1.0;
+    TSample s2v0 = std::sqrt((TSample)2.0 * v0_);
+    TSample v0kk = v0_ * k_ * k_;
+    TSample bood =  (TSample)1.0 + ((TSample)M_SQRT2 * k_) + (k_ * k_);
+    TSample lcud =  v0_ + s2v0 + (k_ * k_);
+    TSample hcud = (TSample)1.0 + (s2v0 * k_) + v0kk;
+    TSample kiq = k_ / q_;
+    TSample bpkd = ((TSample)1.0 + kiq + (k_ * k_));
+    TSample cpkd = ((TSample)1.0 + (kiq / v0_) + (k_ * k_));
+
+    if (type_ >= BQFilters::LOWPASS && type_ <= BQFilters::ALLPASS)
+    {
+        a1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
+        a2_ = (kkq - k_ + q_) / (kkq + k_ + q_);
+    }
+
+    switch (type_)
+    {
+    case BQFilters::LOWPASS:
+        b0_ = kkq / (kkq + k_ + q_);
+        b1_ = (TSample)2.0 * b0_;
+        b2_ = b0_;
+        break;
+    case BQFilters::HIPASS:
+        b0_ = q_ / (kkq + k_ + q_);
+        b1_ = (TSample)-2.0 * b0_;
+        b2_ = b0_;
+        break;
+    case BQFilters::BANDPASS:
+        b0_ = k_ / (kkq + k_ + q_);
+        b1_ = (TSample)0.0;
+        b2_ = (TSample)-1.0 * b0_;
+        break;
+    case BQFilters::BANDREJECT:
+        b0_ = (q_ * ((TSample)1.0 + (k_ * k_))) / (kkq + k_ + q_);
+        b1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
+        b2_ = b0_;
+        break;
+    case BQFilters::ALLPASS:
+        b0_ = (kkq - k_ + q_) / (kkq + k_ + q_);
+        b1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
+        b2_ = (TSample)1.0;
+        break;
+    case BQFilters::LOWSHELF:
+        if (gain_ > (TSample)0.0)
+        {
+            a1_ = ((TSample)2.0 * ((k_ * k_) - (TSample)1.0)) / bood;
+            a2_ = ((TSample)1.0 - ((TSample)M_SQRT2 * k_) + (k_ * k_)) / bood;
+            b0_ = ((TSample)1.0 + s2v0 + v0kk) / bood;
+            b1_ = ((TSample)2.0 * (v0kk - (TSample)1.0)) / bood;
+            b2_ = ((TSample)1.0 - (s2v0 * k_) + v0kk) / bood;
+        }
+        else
+        {
+            a1_ = ((TSample)2.0 * ((k_ * k_) - v0_)) / lcud;
+            a2_ = (v0_ - s2v0 + (k_ * k_)) / lcud;
+            b0_ = (v0_ * ((TSample)1.0 + ((TSample)M_SQRT2 * k_) + (k_ * k_))) / lcud;
+            b1_ = ((TSample)2.0 * v0_ * ((k_ * k_) - (TSample)1.0)) / lcud;
+            b2_ = (v0_ * ((TSample)1.0 - ((TSample)M_SQRT2 * k_) + (k_ * k_))) / lcud;
+        }
+        break;
+    case BQFilters::HISHELF:
+        if (gain_ > (TSample)0.0)
+        {
+            a1_ = ((TSample)2.0 * ((k_ * k_) - (TSample)1.0)) / bood;
+            a2_ = ((TSample)1.0 - ((TSample)M_SQRT2 * k_) + (k_ * k_)) / bood;
+            b0_ = ((TSample)v0_ + s2v0 + (k_ * k_)) / bood;
+            b1_ = ((TSample)2.0 * ((k_ * k_) - v0_)) / bood;
+            b2_ = ((TSample)v0_ - s2v0 + (k_ * k_)) / bood;
+        }
+        else
+        {
+            a1_ = ((TSample)2.0 * (v0kk - (TSample)1.0)) / hcud;
+            a2_ = ((TSample)1.0 - (s2v0 * k_) + v0kk) / hcud;
+            b0_ = (v0_ * ((TSample)1.0 + ((TSample)M_SQRT2 * k_) + (k_ * k_))) / hcud;
+            b1_ = ((TSample)2.0 * v0_ * ((k_ * k_) - (TSample)1.0)) / hcud;
+            b2_ = (v0_ * ((TSample)1.0 - ((TSample)M_SQRT2 * k_) + (k_ * k_))) / hcud;
+        }
+        break;
+    case BQFilters::PEAK:
+        if (gain_ > (TSample)0.0)
+        {
+            a1_ = ((TSample)2.0 * ((k_ * k_) - (TSample)1.0)) / bpkd;
+            a2_ = ((TSample)1.0 - kiq + (k_ * k_))/ bpkd;
+            b0_ = ((TSample)1.0 + (v0_ * kiq) + (k_ * k_)) / bpkd;
+            b1_ = a1_;
+            b2_ = ((TSample)1.0 - (v0_ * kiq) + (k_ * k_)) / bpkd;
+        }
+        else
+        {
+            a1_ = ((TSample)2.0 * ((k_ * k_) - (TSample)1.0)) / cpkd;
+            a2_ = ((TSample)1.0 - (kiq / v0_) + (k_ * k_)) / cpkd;
+            b0_ = ((TSample)1.0 + kiq + (k_ * k_))/ cpkd;
+            b1_ = a1_;
+            b2_ = ((TSample)1.0 - kiq + (k_ * k_))/ cpkd;
+        }
+        break;
+    }
 }
 
 }

@@ -31,6 +31,7 @@ SOFTWARE.
 #include "cryptoverb.h"
 #include "delay.h"
 #include "distortions.h"
+#include "ecaosc.h"
 #include "interp.h"
 #include "lorenz.h"
 #include "pulsar.h"

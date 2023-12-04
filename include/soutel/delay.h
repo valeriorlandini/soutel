@@ -26,7 +26,6 @@ SOFTWARE.
 #include <algorithm>
 #include <cmath>
 #include <vector>
-#include <iostream>
 
 #include "interp.h"
 

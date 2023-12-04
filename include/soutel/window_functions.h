@@ -23,6 +23,7 @@ SOFTWARE.
 #ifndef WINDOW_FUNCTIONS_H_
 #define WINDOW_FUNCTIONS_H_
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 namespace soutel

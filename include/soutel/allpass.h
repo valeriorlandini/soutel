@@ -23,8 +23,6 @@ SOFTWARE.
 #ifndef ALLPASS_H_
 #define ALLPASS_H_
 
-#include <iostream>
-
 #include "delay.h"
 
 namespace soutel

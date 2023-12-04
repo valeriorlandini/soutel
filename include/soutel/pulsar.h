@@ -24,8 +24,6 @@ SOFTWARE.
 #define PULSAR_H_
 
 #include <algorithm>
-#include <iostream>
-#include <cmath>
 #include <ctime>
 #include <cstdlib>
 
