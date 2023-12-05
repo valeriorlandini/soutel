@@ -41,14 +41,14 @@ namespace soutel
 
 enum class BQFilters
 {
-    LOWPASS,
-    HIPASS,
-    BANDPASS,
-    BANDREJECT,
-    ALLPASS,
-    LOWSHELF,
-    HISHELF,
-    PEAK
+    lowpass,
+    hipass,
+    bandpass,
+    bandreject,
+    allpass,
+    lowshelf,
+    hishelf,
+    peak
 };
 
 template <class TSample>
@@ -59,7 +59,7 @@ public:
            const TSample &cutoff = (TSample)11025.0,
            const TSample &q = (TSample)0.707,
            const TSample &gain = (TSample)0.0,
-           const BQFilters &type = BQFilters::LOWPASS);
+           const BQFilters &type = BQFilters::lowpass);
 
     void set_sample_rate(const TSample &sample_rate);
     void set_cutoff(const TSample &cutoff);
@@ -116,13 +116,13 @@ Biquad<TSample>::Biquad(const TSample &sample_rate, const TSample &cutoff,
     gain_ = gain;
     v0_ = std::pow((TSample)10.0, gain_/(TSample)20.0);
 
-    if (type >= BQFilters::LOWPASS && type <= BQFilters::PEAK)
+    if (type >= BQFilters::lowpass && type <= BQFilters::peak)
     {
         type_ = type;
     }
     else
     {
-        type_ = BQFilters::LOWPASS;
+        type_ = BQFilters::lowpass;
     }
 
     set_cutoff(cutoff);
@@ -168,7 +168,7 @@ void Biquad<TSample>::set_gain(const TSample &gain)
     gain_ = gain;
     v0_ = std::pow((TSample)10.0, gain_/(TSample)20.0);
 
-    if (type_ >= BQFilters::LOWSHELF && type_ <= BQFilters::PEAK)
+    if (type_ >= BQFilters::lowshelf && type_ <= BQFilters::peak)
     {
         calc_coeffs_();
     }
@@ -177,7 +177,7 @@ void Biquad<TSample>::set_gain(const TSample &gain)
 template <class TSample>
 void Biquad<TSample>::set_type(const BQFilters &type)
 {
-    if (type >= BQFilters::LOWPASS && type <= BQFilters::PEAK)
+    if (type >= BQFilters::lowpass && type <= BQFilters::peak)
     {
         type_ = type;
 
@@ -268,7 +268,7 @@ inline void Biquad<TSample>::calc_coeffs_()
     TSample bpkd = ((TSample)1.0 + kiq + (k_ * k_));
     TSample cpkd = ((TSample)1.0 + (kiq / v0_) + (k_ * k_));
 
-    if (type_ >= BQFilters::LOWPASS && type_ <= BQFilters::ALLPASS)
+    if (type_ >= BQFilters::lowpass && type_ <= BQFilters::allpass)
     {
         a1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
         a2_ = (kkq - k_ + q_) / (kkq + k_ + q_);
@@ -276,32 +276,32 @@ inline void Biquad<TSample>::calc_coeffs_()
 
     switch (type_)
     {
-    case BQFilters::LOWPASS:
+    case BQFilters::lowpass:
         b0_ = kkq / (kkq + k_ + q_);
         b1_ = (TSample)2.0 * b0_;
         b2_ = b0_;
         break;
-    case BQFilters::HIPASS:
+    case BQFilters::hipass:
         b0_ = q_ / (kkq + k_ + q_);
         b1_ = (TSample)-2.0 * b0_;
         b2_ = b0_;
         break;
-    case BQFilters::BANDPASS:
+    case BQFilters::bandpass:
         b0_ = k_ / (kkq + k_ + q_);
         b1_ = (TSample)0.0;
         b2_ = (TSample)-1.0 * b0_;
         break;
-    case BQFilters::BANDREJECT:
+    case BQFilters::bandreject:
         b0_ = (q_ * ((TSample)1.0 + (k_ * k_))) / (kkq + k_ + q_);
         b1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
         b2_ = b0_;
         break;
-    case BQFilters::ALLPASS:
+    case BQFilters::allpass:
         b0_ = (kkq - k_ + q_) / (kkq + k_ + q_);
         b1_ = ((TSample)2.0 * q_ * kkm1) / (kkq + k_ + q_);
         b2_ = (TSample)1.0;
         break;
-    case BQFilters::LOWSHELF:
+    case BQFilters::lowshelf:
         if (gain_ > (TSample)0.0)
         {
             a1_ = ((TSample)2.0 * ((k_ * k_) - (TSample)1.0)) / bood;
@@ -319,7 +319,7 @@ inline void Biquad<TSample>::calc_coeffs_()
             b2_ = (v0_ * ((TSample)1.0 - ((TSample)M_SQRT2 * k_) + (k_ * k_))) / lcud;
         }
         break;
-    case BQFilters::HISHELF:
+    case BQFilters::hishelf:
         if (gain_ > (TSample)0.0)
         {
             a1_ = ((TSample)2.0 * ((k_ * k_) - (TSample)1.0)) / bood;
@@ -337,7 +337,7 @@ inline void Biquad<TSample>::calc_coeffs_()
             b2_ = (v0_ * ((TSample)1.0 - ((TSample)M_SQRT2 * k_) + (k_ * k_))) / hcud;
         }
         break;
-    case BQFilters::PEAK:
+    case BQFilters::peak:
         if (gain_ > (TSample)0.0)
         {
             a1_ = ((TSample)2.0 * ((k_ * k_) - (TSample)1.0)) / bpkd;

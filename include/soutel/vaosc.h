@@ -25,7 +25,6 @@ SOFTWARE.
 
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 
 namespace soutel
 {

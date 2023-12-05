@@ -36,10 +36,10 @@ namespace soutel
 
 enum class BLWaveforms
 {
-    SINE,
-    TRIANGLE,
-    SAW,
-    SQUARE
+    sine,
+    triangle,
+    saw,
+    square
 };
 
 template <class TSample>
@@ -99,6 +99,8 @@ private:
     TSample sine_out_;
     TSample triangle_out_;
     TSample square_out_;
+
+    const TSample double_pi_ = (TSample)(M_PI * 2.0);
 };
 
 template <class TSample>
@@ -128,9 +130,9 @@ void BLOsc<TSample>::set_frequency(const TSample &frequency)
 
     step_ = frequency_ * inv_sample_rate_;
 
-    if (frequency != 0.0)
+    if (frequency != (TSample)0.0)
     {
-        harmonics_ = std::min((TSample)30.0, floor(half_sample_rate_ / abs(frequency_)));
+        harmonics_ = std::min((TSample)30.0, std::floor(half_sample_rate_ / std::abs(frequency_)));
     }
     else
     {
@@ -141,7 +143,7 @@ void BLOsc<TSample>::set_frequency(const TSample &frequency)
 template <class TSample>
 void BLOsc<TSample>::reset()
 {
-    ramp_ = 0.0;
+    ramp_ = (TSample)0.0;
 }
 
 template <class TSample>
@@ -164,34 +166,34 @@ inline bool BLOsc<TSample>::run()
     ramp_ += step_;
     if (ramp_ > 1.0)
     {
-        while (ramp_ > 1.0)
+        while (ramp_ > (TSample)1.0)
         {
-            ramp_ -=  1.0;
+            ramp_ -=  (TSample)1.0;
         }
 
         new_cycle = true;
     }
 
-    sine_out_ = sin(ramp_ * M_PI * 2.0);
+    sine_out_ = std::sin(ramp_ * double_pi_);
 
-    saw_out_ = 0.0;
-    square_out_ = 0.0;
-    triangle_out_ = 0.0;
+    saw_out_ = (TSample)0.0;
+    square_out_ = (TSample)0.0;
+    triangle_out_ = (TSample)0.0;
 
-    for (TSample harmonic = 1.0; harmonic <= harmonics_; harmonic++)
+    for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic++)
     {
-        saw_out_ += sin(-ramp_ * M_PI * 2.0 * harmonic) / harmonic;
+        saw_out_ += std::sin(-ramp_ * double_pi_ * harmonic) / harmonic;
 
         if ((unsigned int)harmonic % 2)
         {
-            square_out_ += sin(ramp_ * M_PI * 2.0 * harmonic) / harmonic;
-            triangle_out_ += cos(ramp_ * M_PI * 2.0 * harmonic) / (harmonic * harmonic);
+            square_out_ += std::sin(ramp_ * double_pi_ * harmonic) / harmonic;
+            triangle_out_ += std::cos(ramp_ * double_pi_ * harmonic) / (harmonic * harmonic);
         }
     }
 
-    saw_out_ *= 0.55;
-    square_out_ *= 1.07;
-    triangle_out_ *= 0.82;
+    saw_out_ *= (TSample)0.55;
+    square_out_ *= (TSample)1.07;
+    triangle_out_ *= (TSample)0.82;
 
     return new_cycle;
 }

@@ -276,7 +276,6 @@ inline TSample ECAOsc<TSample>::run()
         step();
         next_ = cells_to_float();
         sample_count_ = (TSample)0.0;
-        std::cout << next_ << std::endl;
     }
 
     TSample ratio = sample_count_ / steps_;

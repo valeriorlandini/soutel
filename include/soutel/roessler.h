@@ -152,4 +152,4 @@ private:
 
 }
 
-#endif // ROESSLER_HPP_
+#endif // ROESSLER_H_

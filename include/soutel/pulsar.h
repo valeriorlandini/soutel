@@ -38,26 +38,26 @@ namespace soutel
 
 enum class PulsarWaveforms
 {
-    SINE,
-    TRIANGLE,
-    SAW,
-    SQUARE,
-    NOISE,
-    DC,
-    PHASOR
+    sine,
+    triangle,
+    saw,
+    square,
+    noise,
+    dc,
+    phasor
 };
 
 enum class PulsarWindows
 {
-    HANN,
-    HAMMING,
-    BLACKMAN,
-    NUTTALL,
-    BLACKMANNUTTALL,
-    BLACKMANHARRIS,
-    FLATTOP,
-    BARTLETTHANN,
-    RECTANGULAR
+    hann,
+    hamming,
+    blackman,
+    nuttall,
+    blackmannuttall,
+    blackmanharris,
+    flattop,
+    bartletthann,
+    rectangular
 };
 
 template <class TSample>
@@ -67,8 +67,8 @@ public:
     Pulsar(const TSample &sample_rate = 44100.0,
            const TSample &frequency = 0.0,
            const TSample &duty_cycle = 0.5,
-           const PulsarWaveforms &waveform = PulsarWaveforms::SINE,
-           const PulsarWindows &window = PulsarWindows::RECTANGULAR);
+           const PulsarWaveforms &waveform = PulsarWaveforms::sine,
+           const PulsarWindows &window = PulsarWindows::rectangular);
 
     void set_sample_rate(const TSample &sample_rate);
     void set_frequency(const TSample &frequency);
@@ -108,7 +108,7 @@ private:
     PulsarWaveforms waveform_;
     PulsarWindows window_;
 
-    const TSample m_2pi_ = (TSample)2.0 * (TSample)M_PI;
+    const TSample double_pi_ = (TSample)(M_PI * 2.0);
     const TSample inv_rand_max2_ = (TSample)2.0 * ((TSample)1.0 / (TSample)RAND_MAX);
 };
 
@@ -264,65 +264,65 @@ inline TSample Pulsar<TSample>::run()
 
         switch (waveform_)
         {
-        case PulsarWaveforms::SINE:
-            output_ = sin(wave_ramp_ * m_2pi_);
+        case PulsarWaveforms::sine:
+            output_ = sin(wave_ramp_ * double_pi_);
             break;
-        case PulsarWaveforms::SAW:
+        case PulsarWaveforms::saw:
             for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic++)
             {
-                output_ += sin((-wave_ramp_ + (TSample)0.5) * m_2pi_ * harmonic) / harmonic;
+                output_ += std::sin((-wave_ramp_ + (TSample)0.5) * double_pi_ * harmonic) / harmonic;
             }
             output_ *= (TSample)0.55;
             break;
-        case PulsarWaveforms::SQUARE:
-            for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic += (TSample)2)
+        case PulsarWaveforms::square:
+            for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic += (TSample)2.0)
             {
-                output_ += sin(wave_ramp_ * m_2pi_ * harmonic) / harmonic;
+                output_ += std::sin(wave_ramp_ * double_pi_ * harmonic) / harmonic;
             }
             output_ *= (TSample)1.07;
             break;
-        case PulsarWaveforms::TRIANGLE:
-            for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic += (TSample)2)
+        case PulsarWaveforms::triangle:
+            for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic += (TSample)2.0)
             {
-                output_ += cos((wave_ramp_ + (TSample)0.75) * m_2pi_ * harmonic) / (harmonic * harmonic);
+                output_ += std::cos((wave_ramp_ + (TSample)0.75) * double_pi_ * harmonic) / (harmonic * harmonic);
             }
             output_ *= (TSample)0.82;
             break;
-        case PulsarWaveforms::NOISE:
+        case PulsarWaveforms::noise:
             output_ = ((TSample)rand() * inv_rand_max2_) - (TSample)1.0;
             break;
-        case PulsarWaveforms::DC:
+        case PulsarWaveforms::dc:
             output_ = (TSample)1.0;
             break;
-        case PulsarWaveforms::PHASOR:
+        case PulsarWaveforms::phasor:
             output_ = wave_ramp_;
             break;
         }
 
         switch (window_)
         {
-        case PulsarWindows::HANN:
+        case PulsarWindows::hann:
             output_ *= hann(wave_ramp_);
             break;
-        case PulsarWindows::HAMMING:
+        case PulsarWindows::hamming:
             output_ *= hamming(wave_ramp_);
             break;
-        case PulsarWindows::BLACKMAN:
+        case PulsarWindows::blackman:
             output_ *= blackman(wave_ramp_);
             break;
-        case PulsarWindows::NUTTALL:
+        case PulsarWindows::nuttall:
             output_ *= nuttall(wave_ramp_);
             break;
-        case PulsarWindows::BLACKMANNUTTALL:
+        case PulsarWindows::blackmannuttall:
             output_ *= blackmannuttall(wave_ramp_);
             break;
-        case PulsarWindows::BLACKMANHARRIS:
+        case PulsarWindows::blackmanharris:
             output_ *= blackmanharris(wave_ramp_);
             break;
-        case PulsarWindows::FLATTOP:
+        case PulsarWindows::flattop:
             output_ *= flattop(wave_ramp_);
             break;
-        case PulsarWindows::BARTLETTHANN:
+        case PulsarWindows::bartletthann:
             output_ *= bartletthann(wave_ramp_);
             break;
         }
