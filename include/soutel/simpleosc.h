@@ -20,8 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************/
 
-#ifndef VAOSC_H_
-#define VAOSC_H_
+#ifndef SIMPLEOSC_H_
+#define SIMPLEOSC_H_
 
 #include <algorithm>
 #include <cmath>
@@ -34,12 +34,12 @@ namespace soutel
 #endif
 
 template <class TSample>
-class VAOsc
+class SimpleOsc
 {
 public:
-    VAOsc(const TSample &sample_rate = (TSample)44100.0,
-          const TSample &frequency = (TSample)0.0,
-          const TSample &pulse_width = (TSample)0.5);
+    SimpleOsc(const TSample &sample_rate = (TSample)44100.0,
+              const TSample &frequency = (TSample)0.0,
+              const TSample &pulse_width = (TSample)0.5);
 
     void set_sample_rate(const TSample &sample_rate);
     void set_frequency(const TSample &frequency);
@@ -89,7 +89,7 @@ private:
 };
 
 template <class TSample>
-VAOsc<TSample>::VAOsc(const TSample &sample_rate, const TSample &frequency, const TSample &pulse_width)
+SimpleOsc<TSample>::SimpleOsc(const TSample &sample_rate, const TSample &frequency, const TSample &pulse_width)
 {
     frequency_ = frequency;
 
@@ -101,7 +101,7 @@ VAOsc<TSample>::VAOsc(const TSample &sample_rate, const TSample &frequency, cons
 }
 
 template <class TSample>
-void VAOsc<TSample>::set_sample_rate(const TSample &sample_rate)
+void SimpleOsc<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
     half_sample_rate_ = sample_rate_ * (TSample)0.5;
@@ -113,7 +113,7 @@ void VAOsc<TSample>::set_sample_rate(const TSample &sample_rate)
 }
 
 template <class TSample>
-void VAOsc<TSample>::set_frequency(const TSample &frequency)
+void SimpleOsc<TSample>::set_frequency(const TSample &frequency)
 {
     frequency_ = frequency;
 
@@ -121,33 +121,33 @@ void VAOsc<TSample>::set_frequency(const TSample &frequency)
 }
 
 template <class TSample>
-void VAOsc<TSample>::set_pulse_width(const TSample &pulse_width)
+void SimpleOsc<TSample>::set_pulse_width(const TSample &pulse_width)
 {
     pulse_width_ = std::clamp(pulse_width, (TSample)0.0, (TSample)1.0);
 }
 
 
 template <class TSample>
-TSample VAOsc<TSample>::get_sample_rate()
+TSample SimpleOsc<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
 
 template <class TSample>
-TSample VAOsc<TSample>::get_frequency()
+TSample SimpleOsc<TSample>::get_frequency()
 {
     return frequency_;
 }
 
 template <class TSample>
-TSample VAOsc<TSample>::get_pulse_width()
+TSample SimpleOsc<TSample>::get_pulse_width()
 {
     return pulse_width_;
 }
 
 template <class TSample>
-void VAOsc<TSample>::reset()
+void SimpleOsc<TSample>::reset()
 {
     sine_out_ = (TSample)0.0;
     saw_out_ = (TSample)0.0;
@@ -156,7 +156,7 @@ void VAOsc<TSample>::reset()
 }
 
 template <class TSample>
-inline bool VAOsc<TSample>::run()
+inline bool SimpleOsc<TSample>::run()
 {
     bool new_cycle = false;
 
@@ -184,8 +184,8 @@ inline bool VAOsc<TSample>::run()
 }
 
 template <class TSample>
-inline bool VAOsc<TSample>::run(TSample &sine_out, TSample &triangle_out,
-                                TSample &saw_out, TSample &pulse_out)
+inline bool SimpleOsc<TSample>::run(TSample &sine_out, TSample &triangle_out,
+                                    TSample &saw_out, TSample &pulse_out)
 {
     bool new_cycle = run();
 
@@ -195,7 +195,7 @@ inline bool VAOsc<TSample>::run(TSample &sine_out, TSample &triangle_out,
 }
 
 template <class TSample>
-inline void VAOsc<TSample>::get_last_sample(TSample &sine_out,
+inline void SimpleOsc<TSample>::get_last_sample(TSample &sine_out,
         TSample &triangle_out,
         TSample &saw_out,
         TSample &pulse_out)
@@ -208,4 +208,4 @@ inline void VAOsc<TSample>::get_last_sample(TSample &sine_out,
 
 }
 
-#endif // VAOSC_H_
+#endif // SIMPLEOSC_H_

@@ -17,9 +17,10 @@ Currently available headers are:
 * `pulsar.h` Pulsar oscillator
 * `randsig.h` Random signal generator with controllable frequency
 * `roessler.h` Rössler attractor based oscillator
+* `simpleosc.h` Simple non bandlimited multishape oscillator
 * `soutel.h` Utility header file that includes all the single modules
-* `vaosc.h` Simple non bandlimited multishape oscillator
 * `window_functions.h` A series of window functions
+* `wtosc.h` Wavetable oscillator
 
 ### Tutorial
 A detailed tutorial is coming sometime soon. In the meanwhile, you can check how many of these classes are implemented in Max/MSP objects in my open source package [sonus](https://github.com/valeriorlandini/sonus).

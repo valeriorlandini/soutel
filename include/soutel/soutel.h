@@ -37,7 +37,7 @@ SOFTWARE.
 #include "pulsar.h"
 #include "randsig.h"
 #include "roessler.h"
-#include "vaosc.h"
+#include "simpleosc.h"
 #include "window_functions.h"
 
 #endif // SOUTEL_H_
