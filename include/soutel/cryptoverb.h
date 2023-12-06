@@ -29,7 +29,7 @@ SOFTWARE.
 #include "biquad.h"
 #include "comb.h"
 #include "randsig.h"
-#include "vaosc.h"
+#include "simpleosc.h"
 
 namespace soutel
 {
