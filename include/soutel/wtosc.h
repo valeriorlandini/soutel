@@ -94,7 +94,7 @@ void WTOsc<TSample>::set_frequency(const TSample &frequency)
 {
     frequency_ = frequency;
 
-    step_ = (TSample)2.0 * (frequency_ * inv_sample_rate_);
+    step_ = frequency_ * inv_sample_rate_;
 }
 
 template <class TSample>
