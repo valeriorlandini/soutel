@@ -99,8 +99,8 @@ struct block_three
         Allpass<TSample>((TSample)44100.0, (TSample)20.0, (TSample)17.0, (TSample)0.7)
     };
 
-    VAOsc<TSample> lfo_l{VAOsc<TSample>((TSample)44100.0, (TSample)0.19)};
-    VAOsc<TSample> lfo_r{VAOsc<TSample>((TSample)44100.0, (TSample)0.17)};
+    SimpleOsc<TSample> lfo_l{SimpleOsc<TSample>((TSample)44100.0, (TSample)0.19)};
+    SimpleOsc<TSample> lfo_r{SimpleOsc<TSample>((TSample)44100.0, (TSample)0.17)};
 
     Biquad<TSample> lowpass_l{Biquad<TSample>((TSample)44100.0, (TSample)8000.0)};
     Biquad<TSample> lowpass_r{Biquad<TSample>((TSample)44100.0, (TSample)8000.0)};
