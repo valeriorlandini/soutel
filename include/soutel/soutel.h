@@ -39,5 +39,6 @@ SOFTWARE.
 #include "roessler.h"
 #include "simpleosc.h"
 #include "window_functions.h"
+#include "wtosc.h"
 
 #endif // SOUTEL_H_

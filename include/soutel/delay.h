@@ -123,9 +123,9 @@ void Delay<TSample>::set_time(const TSample &delay_time)
 {
     delay_time_ = std::clamp(delay_time, (TSample)0.0, max_delay_time_);
 
-    delay_samples_[0] = (int)floor(sample_rate_ * delay_time_ * (TSample)0.001);
-    delay_samples_[1] = (int)ceil(sample_rate_ * delay_time_ * (TSample)0.001) % buffer_.size();
-    delay_interp_ = (sample_rate_ * delay_time_ * (TSample)0.001) - floor(sample_rate_ * delay_time_ * (TSample)0.001);
+    delay_samples_[0] = (int)std::floor(sample_rate_ * delay_time_ * (TSample)0.001);
+    delay_samples_[1] = (int)std::ceil(sample_rate_ * delay_time_ * (TSample)0.001) % buffer_.size();
+    delay_interp_ = (sample_rate_ * delay_time_ * (TSample)0.001) - std::floor(sample_rate_ * delay_time_ * (TSample)0.001);
 
     for (int p = 0; p <= 1; p++)
     {

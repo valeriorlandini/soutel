@@ -184,11 +184,16 @@ inline TSample WTOsc<TSample>::run()
     {
         read_pos_ -= (TSample)1.0;
     }
+    while (read_pos_ < (TSample)0.0)
+    {
+        read_pos_ += (TSample)1.0;
+    }
 
-    int pos1 = (int)std::floor(read_pos_ * (TSample)wavetable_.size());
-    int pos2 = (int)std::ceil(read_pos_ * (TSample)wavetable_.size()) % wavetable_.size();
+    TSample wt_point = read_pos_ * (TSample)(wavetable_.size() - 1);
+    int pos1 = (int)std::floor(wt_point) % wavetable_.size();
+    int pos2 = (int)std::ceil(wt_point) % wavetable_.size();
 
-    output_ = cosip(wavetable_.at(pos1), wavetable_.at(pos2), read_pos_ - std::floor(read_pos_));
+    output_ = cosip(wavetable_.at(pos1), wavetable_.at(pos2), wt_point - std::floor(wt_point));
 
     return output_;
 }

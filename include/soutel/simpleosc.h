@@ -161,13 +161,13 @@ inline bool SimpleOsc<TSample>::run()
     bool new_cycle = false;
 
     saw_out_ += step_;
-    if (abs(saw_out_) > (TSample)1.0)
+    if (std::abs(saw_out_) > (TSample)1.0)
     {
-        saw_out_ = fmod(saw_out_ + (TSample)1.0, (TSample)2.0) - copysign((TSample)1.0, saw_out_);
+        saw_out_ = std::fmod(saw_out_ + (TSample)1.0, (TSample)2.0) - std::copysign((TSample)1.0, saw_out_);
         new_cycle = true;
     }
 
-    sine_out_ = sin(saw_out_ * M_PI);
+    sine_out_ = sin(saw_out_ * (TSample)M_PI);
 
     triangle_out_ = (copysign((TSample)2.0, -saw_out_) * saw_out_) + (TSample)1.0;
 
