@@ -306,7 +306,7 @@ inline void Biquad<TSample>::calc_coeffs_()
         {
             a1_ = ((TSample)2.0 * ((k_ * k_) - (TSample)1.0)) / bood;
             a2_ = ((TSample)1.0 - ((TSample)M_SQRT2 * k_) + (k_ * k_)) / bood;
-            b0_ = ((TSample)1.0 + s2v0 + v0kk) / bood;
+            b0_ = ((TSample)1.0 + (s2v0 * k_) + v0kk) / bood;
             b1_ = ((TSample)2.0 * (v0kk - (TSample)1.0)) / bood;
             b2_ = ((TSample)1.0 - (s2v0 * k_) + v0kk) / bood;
         }
