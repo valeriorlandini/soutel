@@ -162,7 +162,7 @@ void WTOsc<TSample>::normalize(const TSample &amplitude)
     {
         if (std::abs(sample) > max_value)
         {
-            max_value = sample;
+            max_value = std::abs(sample);
         }
     }
 
