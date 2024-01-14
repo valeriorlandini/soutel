@@ -25,10 +25,17 @@ SOFTWARE.
 
 #include "interp.h"
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class WTOsc
 {
 public:
@@ -66,7 +73,10 @@ private:
     std::vector<TSample> wavetable_;
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 WTOsc<TSample>::WTOsc(const TSample &sample_rate, const TSample &frequency, const std::vector<TSample> &wavetable)
 {
     frequency_ = frequency;
@@ -78,7 +88,10 @@ WTOsc<TSample>::WTOsc(const TSample &sample_rate, const TSample &frequency, cons
     reset();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void WTOsc<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -89,7 +102,10 @@ void WTOsc<TSample>::set_sample_rate(const TSample &sample_rate)
     reset();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void WTOsc<TSample>::set_frequency(const TSample &frequency)
 {
     frequency_ = frequency;
@@ -97,13 +113,19 @@ void WTOsc<TSample>::set_frequency(const TSample &frequency)
     step_ = frequency_ * inv_sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void WTOsc<TSample>::set_wavetable(const std::vector<TSample> &wavetable)
 {
     wavetable_ = wavetable;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void WTOsc<TSample>::set_sample(const TSample &sample, const int &index)
 {
     if (index >= 0 && index < wavetable_.size())
@@ -112,25 +134,37 @@ void WTOsc<TSample>::set_sample(const TSample &sample, const int &index)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample WTOsc<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample WTOsc<TSample>::get_frequency()
 {
     return frequency_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 std::vector<TSample> WTOsc<TSample>::get_wavetable()
 {
     return wavetable_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample WTOsc<TSample>::get_sample(const int &index)
 {
     if (index >= 0 && index < wavetable_.size())
@@ -141,19 +175,28 @@ TSample WTOsc<TSample>::get_sample(const int &index)
     return (TSample)0.0;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void WTOsc<TSample>::reset()
 {
     read_pos_ = (TSample)0.0;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void WTOsc<TSample>::resize_wavetable(const int &new_size)
 {
     wavetable_ = resize_chunk(wavetable_, (unsigned int)std::abs(new_size));
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void WTOsc<TSample>::normalize(const TSample &amplitude)
 {
     TSample max_value = 0.0;
@@ -176,7 +219,10 @@ void WTOsc<TSample>::normalize(const TSample &amplitude)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample WTOsc<TSample>::run()
 {
     read_pos_ += step_;
@@ -198,7 +244,10 @@ inline TSample WTOsc<TSample>::run()
     return output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample WTOsc<TSample>::get_last_sample()
 {
     return output_;

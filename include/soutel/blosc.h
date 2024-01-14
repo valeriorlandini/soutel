@@ -27,6 +27,10 @@ SOFTWARE.
 #include <algorithm>
 #include <cmath>
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
@@ -42,7 +46,10 @@ enum class BLWaveforms
     square
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class BLOsc
 {
 public:
@@ -103,7 +110,10 @@ private:
     const TSample double_pi_ = (TSample)(M_PI * 2.0);
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 BLOsc<TSample>::BLOsc(const TSample &sample_rate, const TSample &frequency)
 {
     frequency_ = frequency;
@@ -113,7 +123,10 @@ BLOsc<TSample>::BLOsc(const TSample &sample_rate, const TSample &frequency)
     reset();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void BLOsc<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -123,7 +136,10 @@ void BLOsc<TSample>::set_sample_rate(const TSample &sample_rate)
     set_frequency(frequency_);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void BLOsc<TSample>::set_frequency(const TSample &frequency)
 {
     frequency_ = std::clamp(frequency, half_sample_rate_ * (TSample)-0.999, half_sample_rate_ * (TSample)0.999);
@@ -140,25 +156,37 @@ void BLOsc<TSample>::set_frequency(const TSample &frequency)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void BLOsc<TSample>::reset()
 {
     ramp_ = (TSample)0.0;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample BLOsc<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample BLOsc<TSample>::get_frequency()
 {
     return frequency_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline bool BLOsc<TSample>::run()
 {
     bool new_cycle = false;
@@ -198,7 +226,10 @@ inline bool BLOsc<TSample>::run()
     return new_cycle;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline bool BLOsc<TSample>::run(TSample &sine_out, TSample &triangle_out,
                                 TSample &saw_out, TSample &square_out)
 {
@@ -209,7 +240,10 @@ inline bool BLOsc<TSample>::run(TSample &sine_out, TSample &triangle_out,
     return new_cycle;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void BLOsc<TSample>::get_last_sample(TSample &sine_out,
         TSample &triangle_out,
         TSample &saw_out,

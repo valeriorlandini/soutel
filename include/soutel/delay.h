@@ -25,10 +25,17 @@ SOFTWARE.
 
 #include "interp.h"
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class Delay
 {
 public:
@@ -72,7 +79,10 @@ private:
     std::vector<TSample> buffer_;
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 Delay<TSample>::Delay(const TSample &sample_rate, const TSample &max_delay_time,
                       const TSample &delay_time, const TSample &feedback)
 {
@@ -89,7 +99,10 @@ Delay<TSample>::Delay(const TSample &sample_rate, const TSample &max_delay_time,
     set_feedback(feedback);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Delay<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -98,7 +111,10 @@ void Delay<TSample>::set_sample_rate(const TSample &sample_rate)
     set_time(delay_time_);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Delay<TSample>::set_max_time(const TSample &max_delay_time, bool clear)
 {
     max_delay_time_ = std::max((TSample)0.0, max_delay_time);
@@ -118,7 +134,10 @@ void Delay<TSample>::set_max_time(const TSample &max_delay_time, bool clear)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Delay<TSample>::set_time(const TSample &delay_time)
 {
     delay_time_ = std::clamp(delay_time, (TSample)0.0, max_delay_time_);
@@ -137,49 +156,73 @@ void Delay<TSample>::set_time(const TSample &delay_time)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Delay<TSample>::set_feedback(const TSample &feedback)
 {
     feedback_ = feedback;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Delay<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Delay<TSample>::get_time()
 {
     return delay_time_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 int Delay<TSample>::get_samples()
 {
     return delay_samples_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Delay<TSample>::get_max_time()
 {
     return max_delay_time_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Delay<TSample>::get_feedback()
 {
     return feedback_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Delay<TSample>::clear()
 {
     buffer_.assign(buffer_.size(), 0.0);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Delay<TSample>::run(const TSample &input)
 {
     output_ = cosip(buffer_.at(read_pos_[0]), buffer_.at(read_pos_[1]), delay_interp_);
@@ -202,14 +245,20 @@ inline TSample Delay<TSample>::run(const TSample &input)
     return output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void Delay<TSample>::run(const TSample &input, TSample &output)
 {
     output_ = run(input);
     output = output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Delay<TSample>::get_last_sample()
 {
     return output_;

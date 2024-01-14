@@ -25,10 +25,17 @@ SOFTWARE.
 
 #include "delay.h"
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class Comb
 {
 public:
@@ -74,7 +81,10 @@ private:
     Delay<TSample> fb_delay_;
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 Comb<TSample>::Comb(const TSample &sample_rate, const TSample &max_delay_time,
                     const TSample &delay_time, const TSample &gain,
                     const TSample &feedforward, const TSample &feedback)
@@ -92,7 +102,10 @@ Comb<TSample>::Comb(const TSample &sample_rate, const TSample &max_delay_time,
     set_feedback(feedback);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Comb<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -103,7 +116,10 @@ void Comb<TSample>::set_sample_rate(const TSample &sample_rate)
     clear();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Comb<TSample>::set_max_time(const TSample &max_delay_time, bool clear)
 {
     max_delay_time_ = std::max((TSample)1.0, max_delay_time);
@@ -117,7 +133,10 @@ void Comb<TSample>::set_max_time(const TSample &max_delay_time, bool clear)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Comb<TSample>::set_time(const TSample &delay_time)
 {
     delay_time_ = std::clamp(delay_time, (TSample)0.0, max_delay_time_);
@@ -126,68 +145,101 @@ void Comb<TSample>::set_time(const TSample &delay_time)
     fb_delay_.set_time(delay_time_);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Comb<TSample>::set_gain(const TSample &gain)
 {
     gain_ = gain;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Comb<TSample>::set_feedforward(const TSample &feedforward)
 {
     feedforward_ = feedforward;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Comb<TSample>::set_feedback(const TSample &feedback)
 {
     feedback_ = feedback;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Comb<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Comb<TSample>::get_time()
 {
     return delay_time_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Comb<TSample>::get_max_time()
 {
     return max_delay_time_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Comb<TSample>::get_gain()
 {
     return gain_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Comb<TSample>::get_feedforward()
 {
     return feedback_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Comb<TSample>::get_feedback()
 {
     return feedback_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Comb<TSample>::clear()
 {
     ff_delay_.clear();
     fb_delay_.clear();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Comb<TSample>::run(const TSample &input)
 {
     TSample out = gain_ * input;
@@ -198,14 +250,20 @@ inline TSample Comb<TSample>::run(const TSample &input)
     return output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void Comb<TSample>::run(const TSample &input, TSample &output)
 {
     output_ = run(input);
     output = output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Comb<TSample>::get_last_sample()
 {
     return output_;

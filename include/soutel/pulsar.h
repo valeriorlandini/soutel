@@ -29,6 +29,10 @@ SOFTWARE.
 
 #include "window_functions.h"
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
@@ -60,7 +64,10 @@ enum class PulsarWindows
     rectangular
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class Pulsar
 {
 public:
@@ -112,7 +119,10 @@ private:
     const TSample inv_rand_max2_ = (TSample)2.0 * ((TSample)1.0 / (TSample)RAND_MAX);
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 Pulsar<TSample>::Pulsar(const TSample &sample_rate,
                         const TSample &frequency,
                         const TSample &duty_cycle,
@@ -137,7 +147,10 @@ Pulsar<TSample>::Pulsar(const TSample &sample_rate,
     srand(time(0));
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Pulsar<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -149,7 +162,10 @@ void Pulsar<TSample>::set_sample_rate(const TSample &sample_rate)
     reset();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Pulsar<TSample>::set_frequency(const TSample &frequency)
 {
     frequency_ = std::clamp(frequency, half_sample_rate_ * (TSample)-0.999, half_sample_rate_ * (TSample)0.999);
@@ -166,7 +182,10 @@ void Pulsar<TSample>::set_frequency(const TSample &frequency)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Pulsar<TSample>::set_duty_cycle(const TSample &duty_cycle)
 {
     duty_cycle_ = std::clamp(duty_cycle, (TSample)0.0, (TSample)1.0);
@@ -183,55 +202,82 @@ void Pulsar<TSample>::set_duty_cycle(const TSample &duty_cycle)
     wave_step_ = frequency_ * inv_sample_rate_ * inv_duty_cycle_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Pulsar<TSample>::set_waveform(const PulsarWaveforms &waveform)
 {
     waveform_ = waveform;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Pulsar<TSample>::set_window(const PulsarWindows &window)
 {
     window_ = window;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Pulsar<TSample>::reset()
 {
     ramp_ = 0.0;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Pulsar<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Pulsar<TSample>::get_frequency()
 {
     return frequency_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Pulsar<TSample>::get_duty_cycle()
 {
     return duty_cycle_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 PulsarWaveforms Pulsar<TSample>::get_waveform()
 {
     return waveform_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 PulsarWindows Pulsar<TSample>::get_window()
 {
     return window_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Pulsar<TSample>::run()
 {
     output_ = 0.0;
@@ -331,7 +377,10 @@ inline TSample Pulsar<TSample>::run()
     return output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Pulsar<TSample>::get_last_sample()
 {
     return output_;

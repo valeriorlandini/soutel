@@ -28,6 +28,10 @@ SOFTWARE.
 #include <cmath>
 #include <deque>
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
@@ -51,7 +55,10 @@ enum class BQFilters
     peak
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class Biquad
 {
 public:
@@ -103,7 +110,10 @@ private:
     inline void calc_coeffs_();
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 Biquad<TSample>::Biquad(const TSample &sample_rate, const TSample &cutoff,
                         const TSample &q, const TSample &gain, const BQFilters &type)
 {
@@ -130,7 +140,10 @@ Biquad<TSample>::Biquad(const TSample &sample_rate, const TSample &cutoff,
     clear();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Biquad<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -145,7 +158,10 @@ void Biquad<TSample>::set_sample_rate(const TSample &sample_rate)
     set_cutoff(cutoff_);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Biquad<TSample>::set_cutoff(const TSample &cutoff)
 {
     cutoff_ = std::clamp(cutoff, (TSample)0.001, half_sample_rate_);
@@ -154,7 +170,10 @@ void Biquad<TSample>::set_cutoff(const TSample &cutoff)
     calc_coeffs_();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Biquad<TSample>::set_q(const TSample &q)
 {
     q_ = std::max((TSample)0.001, q);
@@ -162,7 +181,10 @@ void Biquad<TSample>::set_q(const TSample &q)
     calc_coeffs_();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Biquad<TSample>::set_gain(const TSample &gain)
 {
     gain_ = gain;
@@ -174,7 +196,10 @@ void Biquad<TSample>::set_gain(const TSample &gain)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Biquad<TSample>::set_type(const BQFilters &type)
 {
     if (type >= BQFilters::lowpass && type <= BQFilters::peak)
@@ -185,44 +210,65 @@ void Biquad<TSample>::set_type(const BQFilters &type)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Biquad<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Biquad<TSample>::get_cutoff()
 {
     return cutoff_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Biquad<TSample>::get_q()
 {
     return q_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Biquad<TSample>::get_gain()
 {
     return gain_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 std::array<TSample, 5> Biquad<TSample>::get_coefficients()
 {
     std::array<TSample, 5> coefficients{a1_, a2_, b0_, b1_, b2_};
     return coefficients;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 BQFilters Biquad<TSample>::get_type()
 {
     return type_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Biquad<TSample>::clear()
 {
     w_[0] = (TSample)0.0;
@@ -230,7 +276,10 @@ void Biquad<TSample>::clear()
     w_[2] = (TSample)0.0;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Biquad<TSample>::run(const TSample &input)
 {
     w_[2] = w_[1];
@@ -242,19 +291,28 @@ inline TSample Biquad<TSample>::run(const TSample &input)
     return output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void Biquad<TSample>::run(const TSample &input, TSample &output)
 {
     output = run(input);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Biquad<TSample>::get_last_sample()
 {
     return output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void Biquad<TSample>::calc_coeffs_()
 {
     TSample kkq = k_ * k_ * q_;

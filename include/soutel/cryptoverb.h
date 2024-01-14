@@ -31,10 +31,17 @@ SOFTWARE.
 #include "randsig.h"
 #include "simpleosc.h"
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 struct block_one
 {
     std::array<Comb<TSample>, 4> left =
@@ -57,7 +64,10 @@ struct block_one
     Biquad<TSample> lowpass_r{Biquad<TSample>((TSample)44100.0, (TSample)15000.0)};
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 struct block_two
 {
     std::array<Comb<TSample>, 4> left =
@@ -80,7 +90,10 @@ struct block_two
     Biquad<TSample> lowpass_r{Biquad<TSample>((TSample)44100.0, (TSample)12000.0)};
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 struct block_three
 {
     std::array<Allpass<TSample>, 4> left =
@@ -106,7 +119,10 @@ struct block_three
     Biquad<TSample> lowpass_r{Biquad<TSample>((TSample)44100.0, (TSample)8000.0)};
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 struct block_four
 {
     std::array<Allpass<TSample>, 6> left =
@@ -145,7 +161,10 @@ struct block_four
     Biquad<TSample> lowpass_r{Biquad<TSample>((TSample)44100.0, (TSample)4000.0)};
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class Cryptoverb
 {
 public:
@@ -197,7 +216,10 @@ private:
     Biquad<TSample> lowpass_r_{Biquad<TSample>((TSample)44100.0, (TSample)16000.0)};
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 Cryptoverb<TSample>::Cryptoverb(const TSample &sample_rate,
                                 const TSample &block_one_wet,
                                 const TSample &block_two_wet,
@@ -218,7 +240,10 @@ Cryptoverb<TSample>::Cryptoverb(const TSample &sample_rate,
     clear();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Cryptoverb<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -262,7 +287,10 @@ void Cryptoverb<TSample>::set_sample_rate(const TSample &sample_rate)
     lowpass_r_.set_sample_rate(sample_rate_);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Cryptoverb<TSample>::set_block_wet(const TSample &wet, const unsigned int &block)
 {
     switch (block)
@@ -282,20 +310,29 @@ void Cryptoverb<TSample>::set_block_wet(const TSample &wet, const unsigned int &
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Cryptoverb<TSample>::set_lowpass_cutoff(const TSample &cutoff)
 {
     lowpass_l_.set_cutoff(std::clamp(cutoff, (TSample)0.0, sample_rate_ * (TSample)0.5));
     lowpass_r_.set_cutoff(std::clamp(cutoff, (TSample)0.0, sample_rate_ * (TSample)0.5));
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Cryptoverb<TSample>::set_mode(const unsigned int& mode)
 {
     mode_ = std::clamp(mode, 0u, 2u);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Cryptoverb<TSample>::clear()
 {
     for (auto i = 0; i < 6; i++)
@@ -338,13 +375,19 @@ void Cryptoverb<TSample>::clear()
 
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Cryptoverb<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Cryptoverb<TSample>::get_block_wet(const unsigned int &block)
 {
     switch (block)
@@ -366,19 +409,28 @@ TSample Cryptoverb<TSample>::get_block_wet(const unsigned int &block)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Cryptoverb<TSample>::get_lowpass_cutoff()
 {
     return lowpass_l_.get_cutoff();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 unsigned int Cryptoverb<TSample>::get_mode()
 {
     return mode_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 std::array<TSample, 2> Cryptoverb<TSample>::get_outputs()
 {
     std::array<TSample, 2> outputs = {output_l_, output_r_};
@@ -386,7 +438,10 @@ std::array<TSample, 2> Cryptoverb<TSample>::get_outputs()
     return outputs;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline std::array<TSample, 2> Cryptoverb<TSample>::run(const TSample &input_l, const TSample &input_r)
 {
     if (mode_ == 0)
@@ -458,7 +513,10 @@ inline std::array<TSample, 2> Cryptoverb<TSample>::run(const TSample &input_l, c
     return outputs;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 std::array<TSample, 2> Cryptoverb<TSample>::run_block_one_(const TSample &input_l, const TSample &input_r)
 {
     TSample out_l1 = block_one_.left[0].run(input_l);
@@ -484,7 +542,10 @@ std::array<TSample, 2> Cryptoverb<TSample>::run_block_one_(const TSample &input_
     return std::array<TSample, 2> {out_l, out_r};
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 std::array<TSample, 2> Cryptoverb<TSample>::run_block_two_(const TSample &input_l, const TSample &input_r)
 {
     TSample out_l1 = block_two_.left[0].run(input_l);
@@ -510,7 +571,10 @@ std::array<TSample, 2> Cryptoverb<TSample>::run_block_two_(const TSample &input_
     return std::array<TSample, 2> {out_l, out_r};
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 std::array<TSample, 2> Cryptoverb<TSample>::run_block_three_(const TSample &input_l, const TSample &input_r)
 {
     TSample out_l = block_three_.left[0].run(input_l);
@@ -540,7 +604,10 @@ std::array<TSample, 2> Cryptoverb<TSample>::run_block_three_(const TSample &inpu
     return std::array<TSample, 2> {out_l, out_r};
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 std::array<TSample, 2> Cryptoverb<TSample>::run_block_four_(const TSample &input_l, const TSample &input_r)
 {
     TSample out_l = block_four_.left[0].run(input_l);

@@ -27,10 +27,17 @@ SOFTWARE.
 #include <cmath>
 #include <random>
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class Randsig
 {
 public:
@@ -67,7 +74,10 @@ private:
     TSample output_;
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 Randsig<TSample>::Randsig(const TSample &sample_rate, const TSample &frequency)
 {
     frequency_ = frequency;
@@ -79,7 +89,10 @@ Randsig<TSample>::Randsig(const TSample &sample_rate, const TSample &frequency)
     reset();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Randsig<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -88,7 +101,10 @@ void Randsig<TSample>::set_sample_rate(const TSample &sample_rate)
     set_frequency(frequency_);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Randsig<TSample>::set_frequency(const TSample &frequency)
 {
     frequency_ = std::clamp(frequency, (TSample)0.001, half_sample_rate_);
@@ -97,19 +113,28 @@ void Randsig<TSample>::set_frequency(const TSample &frequency)
     sample_count_ = (TSample)0.0;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Randsig<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Randsig<TSample>::get_frequency()
 {
     return frequency_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Randsig<TSample>::reset()
 {
     output_ = (TSample)0.0;
@@ -117,7 +142,10 @@ void Randsig<TSample>::reset()
     next_ = (rand_dist_(gen_) * (TSample)2.0) - (TSample)1.0;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Randsig<TSample>::run()
 {
     ++sample_count_;
@@ -136,7 +164,10 @@ inline TSample Randsig<TSample>::run()
     return output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Randsig<TSample>::get_last_sample()
 {
     return output_;

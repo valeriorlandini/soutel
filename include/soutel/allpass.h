@@ -25,10 +25,17 @@ SOFTWARE.
 
 #include "delay.h"
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class Allpass
 {
 public:
@@ -66,7 +73,10 @@ private:
     Delay<TSample> fb_delay_;
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 Allpass<TSample>::Allpass(const TSample &sample_rate,
                           const TSample &max_delay_time,
                           const TSample &delay_time,
@@ -81,7 +91,10 @@ Allpass<TSample>::Allpass(const TSample &sample_rate,
     set_gain(gain);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Allpass<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -92,7 +105,10 @@ void Allpass<TSample>::set_sample_rate(const TSample &sample_rate)
     clear();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Allpass<TSample>::set_max_time(const TSample &max_delay_time, bool clear)
 {
     max_delay_time_ = std::max((TSample)1.0, max_delay_time);
@@ -106,7 +122,10 @@ void Allpass<TSample>::set_max_time(const TSample &max_delay_time, bool clear)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Allpass<TSample>::set_time(const TSample &delay_time)
 {
     delay_time_ = std::clamp(delay_time, (TSample)0.0, max_delay_time_);
@@ -115,44 +134,65 @@ void Allpass<TSample>::set_time(const TSample &delay_time)
     fb_delay_.set_time(delay_time_);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Allpass<TSample>::set_gain(const TSample &gain)
 {
     gain_ = gain;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Allpass<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Allpass<TSample>::get_time()
 {
     return delay_time_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Allpass<TSample>::get_max_time()
 {
     return max_delay_time_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample Allpass<TSample>::get_gain()
 {
     return gain_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Allpass<TSample>::clear()
 {
     ff_delay_.clear();
     fb_delay_.clear();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Allpass<TSample>::run(const TSample &input)
 {
     TSample out = (TSample)-1.0 * gain_ * input;
@@ -163,14 +203,20 @@ inline TSample Allpass<TSample>::run(const TSample &input)
     return output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void Allpass<TSample>::run(const TSample &input, TSample &output)
 {
     output_ = run(input);
     output = output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample Allpass<TSample>::get_last_sample()
 {
     return output_;

@@ -26,10 +26,17 @@ SOFTWARE.
 #include <algorithm>
 #include <cmath>
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample symmetrical_soft_clip(const TSample &sample,
                                      const TSample &threshold = (TSample)0.333)
 {
@@ -54,7 +61,10 @@ inline TSample symmetrical_soft_clip(const TSample &sample,
     return sample_out;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample exponential_distortion(const TSample &sample,
                                       const TSample &gain,
                                       const TSample &mix = (TSample)1.0)
@@ -65,7 +75,10 @@ inline TSample exponential_distortion(const TSample &sample,
     return mix * z + ((TSample)1.0 - mix) * sample;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample bitcrush(const TSample &sample, const TSample &bit_depth, const TSample &mix = 1.0)
 {
     unsigned long in = (unsigned long)std::round(((TSample)1.0 +

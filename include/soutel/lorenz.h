@@ -25,10 +25,17 @@ SOFTWARE.
 
 #include <algorithm>
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class Lorenz
 {
 public:

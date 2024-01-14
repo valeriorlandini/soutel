@@ -26,6 +26,10 @@ SOFTWARE.
 #include <algorithm>
 #include <cmath>
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
@@ -33,7 +37,10 @@ namespace soutel
 #define M_PI 3.14159265358979323846
 #endif
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class SimpleOsc
 {
 public:
@@ -88,7 +95,10 @@ private:
     TSample pulse_width_;
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 SimpleOsc<TSample>::SimpleOsc(const TSample &sample_rate, const TSample &frequency, const TSample &pulse_width)
 {
     frequency_ = frequency;
@@ -100,7 +110,10 @@ SimpleOsc<TSample>::SimpleOsc(const TSample &sample_rate, const TSample &frequen
     reset();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void SimpleOsc<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -112,7 +125,10 @@ void SimpleOsc<TSample>::set_sample_rate(const TSample &sample_rate)
     reset();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void SimpleOsc<TSample>::set_frequency(const TSample &frequency)
 {
     frequency_ = frequency;
@@ -120,33 +136,48 @@ void SimpleOsc<TSample>::set_frequency(const TSample &frequency)
     step_ = (TSample)2.0 * (frequency_ * inv_sample_rate_);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void SimpleOsc<TSample>::set_pulse_width(const TSample &pulse_width)
 {
     pulse_width_ = std::clamp(pulse_width, (TSample)0.0, (TSample)1.0);
 }
 
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample SimpleOsc<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample SimpleOsc<TSample>::get_frequency()
 {
     return frequency_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample SimpleOsc<TSample>::get_pulse_width()
 {
     return pulse_width_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void SimpleOsc<TSample>::reset()
 {
     sine_out_ = (TSample)0.0;
@@ -155,7 +186,10 @@ void SimpleOsc<TSample>::reset()
     pulse_out_ = (TSample)0.0;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline bool SimpleOsc<TSample>::run()
 {
     bool new_cycle = false;
@@ -183,7 +217,10 @@ inline bool SimpleOsc<TSample>::run()
     return new_cycle;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline bool SimpleOsc<TSample>::run(TSample &sine_out, TSample &triangle_out,
                                     TSample &saw_out, TSample &pulse_out)
 {
@@ -194,7 +231,10 @@ inline bool SimpleOsc<TSample>::run(TSample &sine_out, TSample &triangle_out,
     return new_cycle;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void SimpleOsc<TSample>::get_last_sample(TSample &sine_out,
         TSample &triangle_out,
         TSample &saw_out,

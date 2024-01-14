@@ -25,10 +25,17 @@ SOFTWARE.
 
 #include "interp.h"
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample chebyshev(const TSample &input, const unsigned int &order)
 {
     TSample output = (TSample)0.0;
@@ -98,7 +105,10 @@ inline TSample chebyshev(const TSample &input, const unsigned int &order)
     return output;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample chebyshev(const TSample &input, const TSample &order)
 {
     TSample out_1 = chebyshev(input, (unsigned int)floor(order));

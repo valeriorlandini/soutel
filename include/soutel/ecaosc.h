@@ -29,10 +29,17 @@ SOFTWARE.
 #include <random>
 #include <vector>
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 class ECAOsc
 {
 public:
@@ -98,7 +105,10 @@ private:
     TSample output_;
 };
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 ECAOsc<TSample>::ECAOsc(const TSample &sample_rate, const TSample &frequency,
                         const unsigned int &cells, const std::array<bool, 8> &rules,
                         const bool &randomize_cells)
@@ -121,7 +131,10 @@ ECAOsc<TSample>::ECAOsc(const TSample &sample_rate, const TSample &frequency,
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 ECAOsc<TSample>::ECAOsc(const TSample &sample_rate, const TSample &frequency,
                         const unsigned int &cells, const uint8_t &rule_number,
                         const bool &randomize_cells)
@@ -144,7 +157,10 @@ ECAOsc<TSample>::ECAOsc(const TSample &sample_rate, const TSample &frequency,
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void ECAOsc<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
@@ -153,7 +169,10 @@ void ECAOsc<TSample>::set_sample_rate(const TSample &sample_rate)
     set_frequency(frequency_);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void ECAOsc<TSample>::set_frequency(const TSample &frequency)
 {
     frequency_ = std::clamp(frequency, (TSample)0.001, half_sample_rate_);
@@ -162,7 +181,10 @@ void ECAOsc<TSample>::set_frequency(const TSample &frequency)
     sample_count_ = (TSample)0.0;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void ECAOsc<TSample>::set_cells_number(const unsigned int &cells_number, const bool &clear)
 {
     if (clear)
@@ -175,7 +197,10 @@ void ECAOsc<TSample>::set_cells_number(const unsigned int &cells_number, const b
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void ECAOsc<TSample>::set_rules(const std::array<bool, 8> &rules)
 {
     for (int r = 0; r < 8; r++)
@@ -184,7 +209,10 @@ void ECAOsc<TSample>::set_rules(const std::array<bool, 8> &rules)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void ECAOsc<TSample>::set_rule_number(const uint8_t &rule_number)
 {
     for (int b = 0; b < 8; b++)
@@ -193,7 +221,10 @@ void ECAOsc<TSample>::set_rule_number(const uint8_t &rule_number)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void ECAOsc<TSample>::set_cells_status(const std::vector<bool> &status)
 {
     for (int s = 0; s < std::min(status.size(), cell_status_.size()); s++)
@@ -202,7 +233,10 @@ void ECAOsc<TSample>::set_cells_status(const std::vector<bool> &status)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void ECAOsc<TSample>::set_cell_status(const bool &status, const unsigned int &cell)
 {
     if (cell < cell_status_.size())
@@ -211,7 +245,10 @@ void ECAOsc<TSample>::set_cell_status(const bool &status, const unsigned int &ce
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void ECAOsc<TSample>::randomize_status(const TSample &alive_chance)
 {
     for (int s = 0; s < cell_status_.size(); s++)
@@ -220,25 +257,37 @@ void ECAOsc<TSample>::randomize_status(const TSample &alive_chance)
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample ECAOsc<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample ECAOsc<TSample>::get_frequency()
 {
     return frequency_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 std::array<bool, 8> ECAOsc<TSample>::get_rules()
 {
     return rules_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 uint8_t ECAOsc<TSample>::get_rule_number()
 {
     char rule_number = 0;
@@ -250,13 +299,19 @@ uint8_t ECAOsc<TSample>::get_rule_number()
     return (uint8_t)rule_number;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 std::vector<bool> ECAOsc<TSample>::get_cells()
 {
     return cell_status_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void ECAOsc<TSample>::reset()
 {
     output_ = (TSample)0.0;
@@ -265,7 +320,10 @@ void ECAOsc<TSample>::reset()
     next_ = cells_to_float();
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample ECAOsc<TSample>::run()
 {
     ++sample_count_;
@@ -285,13 +343,19 @@ inline TSample ECAOsc<TSample>::run()
     return output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample ECAOsc<TSample>::get_last_sample()
 {
     return output_;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void ECAOsc<TSample>::step()
 {
     std::vector<bool> next_gen;
@@ -312,7 +376,10 @@ inline void ECAOsc<TSample>::step()
     }
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample ECAOsc<TSample>::cells_to_float()
 {
     TSample output = (TSample)0.0;

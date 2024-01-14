@@ -27,6 +27,10 @@ SOFTWARE.
 #include <cmath>
 #include <vector>
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
@@ -34,13 +38,19 @@ namespace soutel
 #define M_PI 3.14159265358979323846
 #endif
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample linip(const TSample &a, const TSample &b, const TSample &t)
 {
     return a * ((TSample)1.0 - t) + b * t;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample cosip(const TSample &a, const TSample &b, const TSample &t)
 {
     TSample interp = ((TSample)1.0 - cos(t * (TSample)M_PI)) * (TSample)0.5;
@@ -48,7 +58,10 @@ inline TSample cosip(const TSample &a, const TSample &b, const TSample &t)
     return a * ((TSample)1.0 - interp) + b * interp;
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 std::vector<TSample> resize_chunk(const std::vector<TSample> &chunk, const unsigned int &new_size)
 {
     if (new_size == chunk.size())

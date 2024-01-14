@@ -25,6 +25,10 @@ SOFTWARE.
 
 #include <cmath>
 
+#if __cplusplus >= 202002L
+#include<concepts>
+#endif
+
 namespace soutel
 {
 
@@ -32,21 +36,30 @@ namespace soutel
 #define M_PI 3.14159265358979323846
 #endif
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample hann(const TSample &x)
 {
     return (TSample)0.5 *
            ((TSample)1.0 - cos((TSample)2.0 * (TSample)M_PI * x));
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample hamming(const TSample &x)
 {
     return (TSample)0.54347826 *
            ((TSample)1.0 - cos((TSample)2.0 * (TSample)M_PI * x));
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample blackman(const TSample &x)
 {
     return (TSample)0.42659 -
@@ -54,7 +67,10 @@ inline TSample blackman(const TSample &x)
            (TSample)0.076849 * cos((TSample)4.0 * x);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample nuttall(const TSample &x)
 {
     return (TSample)0.355768 -
@@ -63,7 +79,10 @@ inline TSample nuttall(const TSample &x)
            (TSample)0.012604 * cos((TSample)6.0 * (TSample)M_PI * x);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample blackmannuttall(const TSample &x)
 {
     return (TSample)0.3635819 -
@@ -72,7 +91,10 @@ inline TSample blackmannuttall(const TSample &x)
            (TSample)0.0106411 * cos((TSample)6.0 * (TSample)M_PI * x);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample blackmanharris(const TSample &x)
 {
     return (TSample)0.35875 -
@@ -81,7 +103,10 @@ inline TSample blackmanharris(const TSample &x)
            (TSample)0.01168 * cos((TSample)6.0 * (TSample)M_PI * x);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample flattop(const TSample &x)
 {
     return (TSample)0.21557895 -
@@ -91,7 +116,10 @@ inline TSample flattop(const TSample &x)
            (TSample)0.006947368 * cos((TSample)8.0 * (TSample)M_PI * x);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample bartletthann(const TSample &x)
 {
     return (TSample)0.62 -
@@ -99,7 +127,10 @@ inline TSample bartletthann(const TSample &x)
            (TSample)0.38 * cos((TSample)2.0 * (TSample)M_PI * x);
 }
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample rectangular(const TSample &x)
 {
     return (TSample)1.0;
