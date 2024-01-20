@@ -14,6 +14,7 @@ Currently available headers are:
 * `ecaosc.h` Oscillator based on elementary cellular automata
 * `interp.h` Interpolation algorithms
 * `lorenz.h` Lorenz attractor based oscillator
+* `pdosc.h` Phase distortion oscillator
 * `pulsar.h` Pulsar oscillator
 * `randsig.h` Random signal generator with controllable frequency
 * `roessler.h` Rössler attractor based oscillator
