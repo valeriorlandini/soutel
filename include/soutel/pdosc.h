@@ -74,6 +74,8 @@ private:
     TSample inv_1d_;
     TSample ramp_;
     TSample out_;
+
+    const TSample double_pi_ = (TSample)(M_PI * 2.0);
 };
 
 template <typename TSample>
@@ -123,8 +125,8 @@ requires std::floating_point<TSample>
 void PDOsc<TSample>::set_d(const TSample &d)
 {
     d_ = std::clamp(d, (TSample)0.0, (TSample)1.0);
-    inv_d_ = d_ > (TSample)0.0 ? (TSample)1.0 / d_ : (TSample)0.0;
-    inv_1d_ = d_ < (TSample)1.0 ? (TSample)1.0 / ((TSample)1.0 - d_) : (TSample)0.0;
+    inv_d_ = d_ > (TSample)0.001 ? (TSample)1.0 / d_ : (TSample)1000.0;
+    inv_1d_ = d_ < (TSample)0.999 ? (TSample)1.0 / ((TSample)1.0 - d_) : (TSample)1000.0;
 
     set_frequency(frequency_);
 }
@@ -192,7 +194,7 @@ inline TSample PDOsc<TSample>::run()
         ramp_ += 1.0;
     }
 
-    out_ = std::sin(ramp_ * (TSample)M_PI);
+    out_ = std::sin(ramp_ * double_pi_);
 
     return out_;
 }
