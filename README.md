@@ -27,23 +27,23 @@ Currently available headers are:
 
 To use the classes of this library, you just have to include the corresponding file(s). For example, let's create a bandlimited oscillator and filter it with a lowpass filter.
 Include the necessary files, and use the namespace:
-    ```
-    #include "blosc.h"
-    #include "biquad.h"
+```cpp
+#include "blosc.h"
+#include "biquad.h"
      
-    using namespace soutel;
-    ```
+using namespace soutel;
+```
 
 Then, instantiate the classes, specifying the optional arguments if you wish:
-    ```
-    BLOsc<double> oscillator(44100.0, 440.0); // arguments: sample rate and frequency
-    Biquad<double> filter(44100.0, 880.0, 2.0, 1.0, BQFilters::lowpass); // arguments: sample rate, cutoff, q, gain (for shelving filters), filter type
-    ```
+```cpp
+BLOsc<double> oscillator(44100.0, 440.0); // arguments: sample rate and frequency
+Biquad<double> filter(44100.0, 880.0, 2.0, 1.0, BQFilters::lowpass); // arguments: sample rate, cutoff, q, gain (for shelving filters), filter type
+```
 
 Finally, call `run()` function. For the bandlimited oscillator, since it produces different waveforms, you have to ask for the desired shape or pass variables to store the different shapes:
-    ```
-    oscillator.run(); // alternatively, you can pass four variables to run(), where sine, triangle, saw and square output are stored
-    double filtered_sample = filter.run(oscillator.get_saw());
-    ```
+```cpp
+oscillator.run(); // alternatively, you can pass four variables to run(), where sine, triangle, saw and square output are stored
+double filtered_sample = filter.run(oscillator.get_saw());
+```
 
 A more detailed tutorial is coming sometime soon. In the meanwhile, you can check how many of these classes are implemented in Max/MSP objects in my open source package [sonus](https://github.com/valeriorlandini/sonus).
