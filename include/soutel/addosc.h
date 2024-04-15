@@ -21,10 +21,11 @@ SOFTWARE.
 ******************************************************************************/
 
 
-#ifndef BLOSC_H_
-#define BLOSC_H_
+#ifndef ADDOSC_H_
+#define ADDOSC_H_
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 #if __cplusplus >= 202002L
@@ -50,45 +51,29 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-class BLOsc
+class AddOsc
 {
 public:
-    BLOsc(const TSample &sample_rate = (TSample)44100.0,
+    AddOsc(const TSample &sample_rate = (TSample)44100.0,
           const TSample &frequency = (TSample)0.0);
 
     void set_sample_rate(const TSample &sample_rate);
     void set_frequency(const TSample &frequency);
+    void set_harmonics_gain(const std::array<TSample, 32> &harmonics_gain);
+    void set_harmonics_phase(const std::array<TSample, 32> &harmonics_phase);
+    bool set_harmonic_state(const int &index, const TSample &gain, const TSample &phase);
     void reset();
 
     TSample get_sample_rate();
     TSample get_frequency();
+    std::array<TSample, 32> get_harmonics_gain();
+    std::array<TSample, 32> get_harmonics_phase();
+    std::array<TSample, 2> get_harmonic_state(const int &index);
+    bool get_harmonic_values(const int &index, TSample &gain = 0.0, TSample &phase = 0.0);
 
-    inline bool run();
-    inline bool run(TSample &sine_out, TSample &triangle_out, TSample &saw_out,
-                    TSample &square_out);
+    inline TSample run();
 
-    inline void get_last_sample(TSample &sine_out, TSample &triangle_out,
-                                TSample &saw_out, TSample &square_out);
-
-    inline TSample get_sine()
-    {
-        return sine_out_;
-    };
-
-    inline TSample get_triangle()
-    {
-        return triangle_out_;
-    };
-
-    inline TSample get_saw()
-    {
-        return saw_out_;
-    };
-
-    inline TSample get_square()
-    {
-        return square_out_;
-    };
+    inline TSample get_last_sample();
 
 private:
     TSample sample_rate_;
@@ -100,12 +85,12 @@ private:
     TSample step_;
     TSample ramp_;
 
-    TSample harmonics_;
+    int harmonics_;
 
-    TSample saw_out_;
-    TSample sine_out_;
-    TSample triangle_out_;
-    TSample square_out_;
+    TSample output_;
+
+    std::array<TSample, 32> harmonics_gain_;
+    std::array<TSample, 32> harmonics_phase_;
 
     const TSample double_pi_ = (TSample)(M_PI * 2.0);
 };
@@ -114,7 +99,7 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-BLOsc<TSample>::BLOsc(const TSample &sample_rate, const TSample &frequency)
+AddOsc<TSample>::AddOsc(const TSample &sample_rate, const TSample &frequency)
 {
     frequency_ = frequency;
 
@@ -127,7 +112,7 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-void BLOsc<TSample>::set_sample_rate(const TSample &sample_rate)
+void AddOsc<TSample>::set_sample_rate(const TSample &sample_rate)
 {
     sample_rate_ = std::max((TSample)1.0, sample_rate);
     half_sample_rate_ = sample_rate_ * (TSample)0.5;
@@ -140,7 +125,7 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-void BLOsc<TSample>::set_frequency(const TSample &frequency)
+void AddOsc<TSample>::set_frequency(const TSample &frequency)
 {
     frequency_ = std::clamp(frequency, half_sample_rate_ * (TSample)-0.999, half_sample_rate_ * (TSample)0.999);
 
@@ -148,11 +133,11 @@ void BLOsc<TSample>::set_frequency(const TSample &frequency)
 
     if (frequency != (TSample)0.0)
     {
-        harmonics_ = std::min((TSample)30.0, std::floor(half_sample_rate_ / std::abs(frequency_)));
+        harmonics_ = std::min(32, int(std::floor(half_sample_rate_ / std::abs(frequency_))));
     }
     else
     {
-        harmonics_ = (TSample)0.0;
+        harmonics_ = 0;
     }
 }
 
@@ -160,7 +145,7 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-void BLOsc<TSample>::reset()
+void AddOsc<TSample>::reset()
 {
     ramp_ = (TSample)0.0;
 }
@@ -169,7 +154,7 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-TSample BLOsc<TSample>::get_sample_rate()
+TSample AddOsc<TSample>::get_sample_rate()
 {
     return sample_rate_;
 }
@@ -178,7 +163,7 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-TSample BLOsc<TSample>::get_frequency()
+TSample AddOsc<TSample>::get_frequency()
 {
     return frequency_;
 }
@@ -187,10 +172,59 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-inline bool BLOsc<TSample>::run()
+std::array<TSample, 32> AddOsc<TSample>::get_harmonics_gain()
 {
-    bool new_cycle = false;
+    return harmonics_gain_;
+}
 
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+std::array<TSample, 32> AddOsc<TSample>::get_harmonics_phase()
+{
+    return harmonics_phase_;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+std::array<TSample, 2> AddOsc<TSample>::get_harmonic_state(const int &index)
+{
+    std::array<TSample, 2> state{(TSample)0.0, (TSample)0.0};
+
+    if (index >= 0 && index < 32)
+    {
+        state[0] = harmonics_gain_[index];
+        state[1] = harmonics_phase_[index];
+    }
+
+    return state;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool AddOsc<TSample>::get_harmonic_values(const int &index, TSample &gain, TSample &phase)
+{
+    if (index >= 0 && index < 32)
+    {
+        gain = harmonics_gain_[index];
+        phase = harmonics_phase_[index];
+        return true;
+    }
+
+    return false;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+inline TSample AddOsc<TSample>::run()
+{
     ramp_ += step_;
     if (ramp_ > (TSample)1.0)
     {
@@ -198,63 +232,28 @@ inline bool BLOsc<TSample>::run()
         {
             ramp_ -=  (TSample)1.0;
         }
-
-        new_cycle = true;
     }
 
-    sine_out_ = std::sin(ramp_ * double_pi_);
+    output_ = (TSample)0.0;
 
-    saw_out_ = (TSample)0.0;
-    square_out_ = (TSample)0.0;
-    triangle_out_ = (TSample)0.0;
-
-    for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic++)
+    for (auto h = 0; h < harmonics_; h++)
     {
-        saw_out_ += std::sin(-ramp_ * double_pi_ * harmonic) / harmonic;
-
-        if ((unsigned int)harmonic % 2)
-        {
-            square_out_ += std::sin(ramp_ * double_pi_ * harmonic) / harmonic;
-            triangle_out_ += std::cos(ramp_ * double_pi_ * harmonic) / (harmonic * harmonic);
-        }
+        TSample harmonic = (TSample)(h + 1);
+        output_ += harmonics_gain_[h] * (std::sin(harmonics_phase_[h] * ramp_ * double_pi_ * harmonic) / harmonic);
     }
 
-    saw_out_ *= (TSample)0.55;
-    square_out_ *= (TSample)1.07;
-    triangle_out_ *= (TSample)0.82;
-
-    return new_cycle;
+    return output_;
 }
 
 template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-inline bool BLOsc<TSample>::run(TSample &sine_out, TSample &triangle_out,
-                                TSample &saw_out, TSample &square_out)
+inline TSample AddOsc<TSample>::get_last_sample()
 {
-    bool new_cycle = run();
-
-    get_last_sample(sine_out, triangle_out, saw_out, square_out);
-
-    return new_cycle;
-}
-
-template <typename TSample>
-#if __cplusplus >= 202002L
-requires std::floating_point<TSample>
-#endif
-inline void BLOsc<TSample>::get_last_sample(TSample &sine_out,
-        TSample &triangle_out,
-        TSample &saw_out,
-        TSample &square_out)
-{
-    saw_out = saw_out_;
-    sine_out = sine_out_;
-    triangle_out = triangle_out_;
-    square_out = square_out_;
+    return output_;
 }
 
 }
 
-#endif // BLOSC_H_
+#endif // ADDOSC_H_
