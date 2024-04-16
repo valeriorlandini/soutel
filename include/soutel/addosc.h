@@ -62,6 +62,8 @@ public:
     void set_harmonics_gain(const std::array<TSample, 32> &harmonics_gain);
     void set_harmonics_phase(const std::array<TSample, 32> &harmonics_phase);
     bool set_harmonic_state(const int &index, const TSample &gain, const TSample &phase);
+    bool set_harmonic_gain(const int &index, const TSample &gain);
+    bool set_harmonic_phase(const int &index, const TSample &phase);
     void reset();
 
     TSample get_sample_rate();
@@ -69,7 +71,6 @@ public:
     std::array<TSample, 32> get_harmonics_gain();
     std::array<TSample, 32> get_harmonics_phase();
     std::array<TSample, 2> get_harmonic_state(const int &index);
-    bool get_harmonic_values(const int &index, TSample &gain = 0.0, TSample &phase = 0.0);
 
     inline TSample run();
 
@@ -145,6 +146,73 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
+void AddOsc<TSample>::set_harmonics_gain(const std::array<TSample, 32> &harmonics_gain)
+{
+    harmonics_gain_ = harmonics_gain;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+void AddOsc<TSample>::set_harmonics_phase(const std::array<TSample, 32> &harmonics_phase)
+{
+    harmonics_phase_ = harmonics_phase;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool AddOsc<TSample>::set_harmonic_state(const int &index, const TSample &gain, const TSample &phase)
+{
+    if (index < 32)
+    {
+        set_harmonic_gain(index, gain);
+        set_harmonic_phase(index, phase);
+
+        return true;
+    }
+    
+    return false;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool AddOsc<TSample>::set_harmonic_gain(const int &index, const TSample &gain)
+{
+    if (index < 32)
+    {
+        harmonics_gain_[index] = gain;
+
+        return true;
+    }
+    
+    return false;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool AddOsc<TSample>::set_harmonic_phase(const int &index, const TSample &phase)
+{
+    if (index < 32)
+    {
+        harmonics_phase_[index] = phase;
+
+        return true;
+    }
+    
+    return false;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void AddOsc<TSample>::reset()
 {
     ramp_ = (TSample)0.0;
@@ -201,22 +269,6 @@ std::array<TSample, 2> AddOsc<TSample>::get_harmonic_state(const int &index)
     }
 
     return state;
-}
-
-template <typename TSample>
-#if __cplusplus >= 202002L
-requires std::floating_point<TSample>
-#endif
-bool AddOsc<TSample>::get_harmonic_values(const int &index, TSample &gain, TSample &phase)
-{
-    if (index >= 0 && index < 32)
-    {
-        gain = harmonics_gain_[index];
-        phase = harmonics_phase_[index];
-        return true;
-    }
-
-    return false;
 }
 
 template <typename TSample>
