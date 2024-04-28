@@ -23,6 +23,7 @@ SOFTWARE.
 #ifndef SOUTEL_H_
 #define SOUTEL_H_
 
+#include "addosc.h"
 #include "allpass.h"
 #include "biquad.h"
 #include "blosc.h"
