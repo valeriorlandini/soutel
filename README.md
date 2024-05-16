@@ -3,7 +3,7 @@ SOUnd TEmplate Library - C++ template library for sound generation and processin
 
 Currently available headers are:
 
-* `addosc.h` Additive oscillator with 32 harmonics
+* `addosc.h` Additive oscillator with up to 256 harmonics
 * `allpass.h` Delay based allpass filter
 * `biquad.h` Second order filters (lowpass, hipass, bandpass, bandreject, allpass, lowshelf, hishelf, peak)
 * `blosc.h` Band limited multishape oscillator

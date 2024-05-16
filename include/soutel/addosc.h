@@ -24,10 +24,7 @@ SOFTWARE.
 #ifndef ADDOSC_H_
 #define ADDOSC_H_
 
-#include <algorithm>
 #include <array>
-#include <cmath>
-#include <memory>
 
 #include "interp.h"
 
@@ -100,7 +97,7 @@ private:
     int harmonics_;
 
     bool normalize_;
-    TSample norm_factor_;
+    TSample norm_factor_ = (TSample)1.0;
     TSample past_norm_factor_;
     TSample interp_;
 
@@ -125,14 +122,14 @@ AddOsc<TSample>::AddOsc(const TSample &sample_rate, const TSample &frequency, co
 
     if (harmonics > 0 && harmonics <= 256)
     {
-        harmonics_state_.resize(harmonics);
+        set_harmonics(harmonics);
     }
     else
     {
-        harmonics_state_.resize(16);
+        set_harmonics(16);
     }
 
-    for (auto h = 0; h < harmonics_state_.size(); h++)
+    for (int h = harmonics_state_.size() - 1; h >= 0; h--)
     {
         harmonics_state_[h].gain = h ? (TSample)0.0 : (TSample)1.0;
         harmonics_state_[h].phase = (TSample)0.0;
@@ -169,6 +166,10 @@ void AddOsc<TSample>::set_harmonics(const int &harmonics)
     if (harmonics > 0 && harmonics <= 256)
     {
         harmonics_state_.resize(harmonics, def_value);
+    }
+    else
+    {
+        harmonics_state_.resize(16, def_value);
     }
 }
 
@@ -305,7 +306,7 @@ requires std::floating_point<TSample>
 #endif
 TSample AddOsc<TSample>::get_sample_rate()
 {
-    return sample_rate_;
+   return sample_rate_;
 }
 
 template <typename TSample>
@@ -314,7 +315,7 @@ requires std::floating_point<TSample>
 #endif
 TSample AddOsc<TSample>::get_frequency()
 {
-    return frequency_;
+   return frequency_;
 }
 
 template <typename TSample>
@@ -433,9 +434,12 @@ inline void AddOsc<TSample>::normalize_gains()
     norm_factor_ = (TSample)1.0;
     TSample total_gain_ = (TSample)0.0;
 
-    for (const auto &s : harmonics_state_)
+    if (harmonics_state_.size() > 0)
     {
-        total_gain_ += s.gain;
+        for (int h = 0; h < int(harmonics_state_.size()); h++)
+        {
+            total_gain_ += harmonics_state_[h].gain;
+        }
     }
 
     if (total_gain_ > (TSample)1.0)
