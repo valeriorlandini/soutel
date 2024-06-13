@@ -220,6 +220,11 @@ void AddOsc<TSample>::set_harmonics_gain(const std::vector<TSample> &harmonics_g
             harmonics_state_[h].gain = harmonics_gain.at(h);
         }
     }
+    
+    if (normalize_)
+    {
+        normalize_gains();
+    }
 }
 
 template <typename TSample>
@@ -442,7 +447,7 @@ inline void AddOsc<TSample>::normalize_gains()
         }
     }
 
-    if (total_gain_ > (TSample)1.0)
+    if (abs(total_gain_) > (TSample)1.0)
     {
         norm_factor_ = (TSample)1.0 / total_gain_;
     }
