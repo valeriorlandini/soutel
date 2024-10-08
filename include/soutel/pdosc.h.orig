@@ -45,8 +45,8 @@ class PDOsc
 {
 public:
     PDOsc(const TSample &sample_rate = (TSample)44100.0,
-          const TSample &frequency = (TSample)0.0,
-          const TSample &d = (TSample)0.5);
+              const TSample &frequency = (TSample)0.0,
+              const TSample &d = (TSample)0.5);
 
     void set_sample_rate(const TSample &sample_rate);
     void set_frequency(const TSample &frequency);
@@ -182,7 +182,7 @@ inline TSample PDOsc<TSample>::run()
     }
     else
     {
-        ramp_ += step_b_;
+        ramp_ += step_b_;    
     }
 
     while (ramp_ > 1.0)

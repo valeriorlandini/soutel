@@ -57,9 +57,9 @@ class AddOsc
 {
 public:
     AddOsc(const TSample &sample_rate = (TSample)44100.0,
-           const TSample &frequency = (TSample)0.0,
-           const int &harmonics = 16,
-           const bool &normalize = true);
+          const TSample &frequency = (TSample)0.0,
+          const int &harmonics = 16,
+          const bool &normalize = true);
 
     void set_sample_rate(const TSample &sample_rate);
     void set_frequency(const TSample &frequency);
@@ -162,7 +162,7 @@ void AddOsc<TSample>::set_harmonics(const int &harmonics)
     harmonic_state<TSample> def_value;
     def_value.gain = (TSample)0.0;
     def_value.phase = (TSample)0.0;
-
+    
     if (harmonics > 0 && harmonics <= 256)
     {
         harmonics_state_.resize(harmonics, def_value);
@@ -220,7 +220,7 @@ void AddOsc<TSample>::set_harmonics_gain(const std::vector<TSample> &harmonics_g
             harmonics_state_[h].gain = harmonics_gain.at(h);
         }
     }
-
+    
     if (normalize_)
     {
         normalize_gains();
@@ -255,7 +255,7 @@ bool AddOsc<TSample>::set_harmonic_state(const int &index, const TSample &gain, 
 
         return true;
     }
-
+    
     return false;
 }
 
@@ -276,7 +276,7 @@ bool AddOsc<TSample>::set_harmonic_gain(const int &index, const TSample &gain)
 
         return true;
     }
-
+    
     return false;
 }
 
@@ -292,7 +292,7 @@ bool AddOsc<TSample>::set_harmonic_phase(const int &index, const TSample &phase)
 
         return true;
     }
-
+    
     return false;
 }
 
@@ -311,7 +311,7 @@ requires std::floating_point<TSample>
 #endif
 TSample AddOsc<TSample>::get_sample_rate()
 {
-    return sample_rate_;
+   return sample_rate_;
 }
 
 template <typename TSample>
@@ -320,7 +320,7 @@ requires std::floating_point<TSample>
 #endif
 TSample AddOsc<TSample>::get_frequency()
 {
-    return frequency_;
+   return frequency_;
 }
 
 template <typename TSample>

@@ -21,13 +21,15 @@ Currently available headers are:
 * `roessler.h` Rössler attractor based oscillator
 * `simpleosc.h` Simple non bandlimited multishape oscillator
 * `soutel.h` Utility header file that includes all the single modules
+* `utils.h` Miscellaneous utility functions, such as unit conversion, zero padding, etc.
 * `window_functions.h` A series of window functions
 * `wtosc.h` Wavetable oscillator
 
 ### Tutorial
 
-To use the classes of this library, you just have to include the corresponding file(s). For example, let's create a bandlimited oscillator and filter it with a lowpass filter.
-Include the necessary files, and use the namespace:
+To use the classes from this library, simply include the corresponding file(s). For example, let's create a bandlimited oscillator and filter its output using a lowpass filter.
+
+First, include the necessary files and import the namespace:
 ```cpp
 #include "blosc.h"
 #include "biquad.h"
@@ -35,15 +37,15 @@ Include the necessary files, and use the namespace:
 using namespace soutel;
 ```
 
-Then, instantiate the classes, specifying the optional arguments if you wish:
+Next, instantiate the classes, providing optional arguments as needed:
 ```cpp
-BLOsc<double> oscillator(44100.0, 440.0); // arguments: sample rate and frequency
-Biquad<double> filter(44100.0, 880.0, 2.0, 1.0, BQFilters::lowpass); // arguments: sample rate, cutoff, q, gain (for shelving filters), filter type
+BLOsc<double> oscillator(44100.0, 440.0); // Arguments: sample rate and frequency
+Biquad<double> filter(44100.0, 880.0, 2.0, 1.0, BQFilters::lowpass);  // Arguments: sample rate, cutoff frequency, Q factor, gain (for shelving filters), filter type
 ```
 
-Finally, call `run()` function. For the bandlimited oscillator, since it produces different waveforms, you have to ask for the desired shape or pass variables to store the different shapes:
+Finally, call the `run()` function. For the bandlimited oscillator, which can produce different waveforms, you can either specify the desired waveform or pass variables to capture all the available shapes:
 ```cpp
-oscillator.run(); // alternatively, you can pass four variables to run(), where sine, triangle, saw and square output are stored
+oscillator.run(); // Alternatively, pass four variables to run() to store the sine, triangle, saw, and square wave outputs
 double filtered_sample = filter.run(oscillator.get_saw());
 ```
 
