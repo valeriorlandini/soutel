@@ -11,6 +11,7 @@ Currently available headers are:
 * `comb.h` Delay based comb filter (feedforward and feedback)
 * `cryptoverb.h` Allpass and comb filters based reverberation
 * `delay.h` Delay with sample interpolation
+* `descriptors.h` Audio descriptors
 * `distortions.h` A collection of distortions and overdrive algorithms
 * `ecaosc.h` Oscillator based on elementary cellular automata
 * `interp.h` Interpolation algorithms
