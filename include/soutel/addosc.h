@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2023-2024 Valerio Orlandini
+Copyright (c) 2023-2025 Valerio Orlandini
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -129,10 +129,13 @@ AddOsc<TSample>::AddOsc(const TSample &sample_rate, const TSample &frequency, co
         set_harmonics(16);
     }
 
-    for (int h = harmonics_state_.size() - 1; h >= 0; h--)
+    if (!harmonics_state_.empty())
     {
-        harmonics_state_[h].gain = h ? (TSample)0.0 : (TSample)1.0;
-        harmonics_state_[h].phase = (TSample)0.0;
+        for (int h = harmonics_state_.size() - 1; h >= 0; h--)
+        {
+            harmonics_state_[h].gain = h ? (TSample)0.0 : (TSample)1.0;
+            harmonics_state_[h].phase = (TSample)0.0;
+        }
     }
 
     set_normalize(normalize);
@@ -213,7 +216,8 @@ requires std::floating_point<TSample>
 #endif
 void AddOsc<TSample>::set_harmonics_gain(const std::vector<TSample> &harmonics_gain)
 {
-    for (auto h = 0; h < harmonics_gain.size(); h++)
+    auto harmonics_gain_size = harmonics_gain.size();
+    for (auto h = 0; h < harmonics_gain_size; h++)
     {
         if (h < harmonics_state_.size())
         {
@@ -233,12 +237,14 @@ requires std::floating_point<TSample>
 #endif
 void AddOsc<TSample>::set_harmonics_phase(const std::vector<TSample> &harmonics_phase)
 {
-    for (auto h = 0; h < harmonics_phase.size(); h++)
+    auto harmonics_phase_size = harmonics_phase.size();
+    for (auto h = 0; h < harmonics_phase_size; h++)
     {
         if (h < harmonics_state_.size())
         {
             harmonics_state_[h].phase = harmonics_phase.at(h);
         }
+    }
     }
 }
 
@@ -441,13 +447,13 @@ inline void AddOsc<TSample>::normalize_gains()
 
     if (harmonics_state_.size() > 0)
     {
-        for (int h = 0; h < int(harmonics_state_.size()); h++)
+        for (auto h = 0; h < harmonics_state_.size(); h++)
         {
             total_gain_ += harmonics_state_[h].gain;
         }
     }
 
-    if (abs(total_gain_) > (TSample)1.0)
+    if (std::abs(total_gain_) > (TSample)1.0)
     {
         norm_factor_ = (TSample)1.0 / total_gain_;
     }

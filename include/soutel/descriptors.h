@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2023-2024 Valerio Orlandini
+Copyright (c) 2023-2025 Valerio Orlandini
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -94,12 +94,12 @@ typename Container::value_type variance(const Container& buffer)
 
     const TSample count = static_cast<TSample>(buffer.size());
     const TSample mean = std::accumulate(buffer.begin(), buffer.end(), (TSample)0.0) / count;
-    
+
     for (const auto &s : buffer)
     {
         variance += pow(s - mean, (TSample)2.0);
     }
-    
+
     variance /= count;
 
     return variance;
@@ -123,12 +123,12 @@ typename Container::value_type kurtosis(const Container& buffer, const TSample &
     TSample invSqrChVariance = (TSample)1.0 / (variance * variance);
 
     const TSample count = static_cast<TSample>(buffer.size());
-    
+
     for (const auto &s : buffer)
     {
         kurtosis += std::pow(s - mean, 4.0f) * invSqrChVariance;
     }
-    
+
     kurtosis /= count;
 
     return kurtosis;

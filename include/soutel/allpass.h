@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2023-2024 Valerio Orlandini
+Copyright (c) 2023-2025 Valerio Orlandini
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -159,6 +159,15 @@ requires std::floating_point<TSample>
 TSample Allpass<TSample>::get_time()
 {
     return delay_time_;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+int Allpass<TSample>::get_samples()
+{
+    return ff_delay_.get_samples();
 }
 
 template <typename TSample>

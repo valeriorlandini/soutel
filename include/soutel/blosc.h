@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2023-2024 Valerio Orlandini
+Copyright (c) 2023-2025 Valerio Orlandini
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -73,22 +73,22 @@ public:
     inline TSample get_sine()
     {
         return sine_out_;
-    };
+    }
 
     inline TSample get_triangle()
     {
         return triangle_out_;
-    };
+    }
 
     inline TSample get_saw()
     {
         return saw_out_;
-    };
+    }
 
     inline TSample get_square()
     {
         return square_out_;
-    };
+    }
 
 private:
     TSample sample_rate_;
@@ -107,7 +107,7 @@ private:
     TSample triangle_out_;
     TSample square_out_;
 
-    const TSample double_pi_ = (TSample)(M_PI * 2.0);
+    static constexpr TSample double_pi_ = (TSample)(M_PI * 2.0);
 };
 
 template <typename TSample>
@@ -208,15 +208,16 @@ inline bool BLOsc<TSample>::run()
     square_out_ = (TSample)0.0;
     triangle_out_ = (TSample)0.0;
 
+    TSample ramp_double_pi = ramp_ * double_pi_;
     for (TSample harmonic = (TSample)1.0; harmonic <= harmonics_; harmonic++)
     {
-        saw_out_ += std::sin(-ramp_ * double_pi_ * harmonic) / harmonic;
-
-        if ((unsigned int)harmonic % 2)
-        {
-            square_out_ += std::sin(ramp_ * double_pi_ * harmonic) / harmonic;
-            triangle_out_ += std::cos(ramp_ * double_pi_ * harmonic) / (harmonic * harmonic);
-        }
+        saw_out_ += std::sin(-ramp_double_pi * harmonic) / harmonic;
+        if (static_cast<unsigned int>(harmonic) % 2)
+            if ((unsigned int)harmonic % 2)
+            {
+                square_out_ += std::sin(ramp_double_pi * harmonic) / harmonic;
+                triangle_out_ += std::cos(ramp_double_pi * harmonic) / (harmonic * harmonic);
+            }
     }
 
     saw_out_ *= (TSample)0.55;

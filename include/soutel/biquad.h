@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2023-2024 Valerio Orlandini
+Copyright (c) 2023-2025 Valerio Orlandini
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -146,39 +146,41 @@ requires std::floating_point<TSample>
 #endif
 void Biquad<TSample>::set_sample_rate(const TSample &sample_rate)
 {
-    sample_rate_ = std::max((TSample)1.0, sample_rate);
-    inv_sample_rate_ = 1.0 / sample_rate_;
-    half_sample_rate_ = sample_rate_ * (TSample)0.5;
-
-    if (cutoff_ > half_sample_rate_)
+    if (sample_rate != sample_rate_)
     {
-        cutoff_ = half_sample_rate_;
-    }
+        sample_rate_ = std::max((TSample)1.0, sample_rate);
+        inv_sample_rate_ = 1.0 / sample_rate_;
+        half_sample_rate_ = sample_rate_ * (TSample)0.5;
 
-    set_cutoff(cutoff_);
+        if (cutoff_ > half_sample_rate_)
+        {
+            cutoff_ = half_sample_rate_;
+        }
+
+        set_cutoff(cutoff_);
+    }
 }
 
 template <typename TSample>
-#if __cplusplus >= 202002L
-requires std::floating_point<TSample>
-#endif
 void Biquad<TSample>::set_cutoff(const TSample &cutoff)
 {
-    cutoff_ = std::clamp(cutoff, (TSample)0.001, half_sample_rate_);
-    k_ = std::tan((TSample)M_PI * cutoff_ * inv_sample_rate_);
-
-    calc_coeffs_();
+    TSample new_cutoff = std::clamp(cutoff, (TSample)0.001, half_sample_rate_);
+    if (new_cutoff != cutoff_)
+    {
+        cutoff_ = new_cutoff;
+        k_ = std::tan((TSample)M_PI * cutoff_ * inv_sample_rate_);
+        calc_coeffs_();
+    }
 }
 
 template <typename TSample>
-#if __cplusplus >= 202002L
-requires std::floating_point<TSample>
-#endif
 void Biquad<TSample>::set_q(const TSample &q)
 {
-    q_ = std::max((TSample)0.001, q);
-
-    calc_coeffs_();
+    if (q != q_)
+    {
+        q_ = std::max((TSample)0.001, q);
+        calc_coeffs_();
+    }
 }
 
 template <typename TSample>
@@ -187,12 +189,15 @@ requires std::floating_point<TSample>
 #endif
 void Biquad<TSample>::set_gain(const TSample &gain)
 {
-    gain_ = gain;
-    v0_ = std::pow((TSample)10.0, gain_/(TSample)20.0);
-
-    if (type_ >= BQFilters::lowshelf && type_ <= BQFilters::peak)
+    if (gain != gain_)
     {
-        calc_coeffs_();
+        gain_ = gain;
+        v0_ = std::pow((TSample)10.0, gain_/(TSample)20.0);
+
+        if (type_ >= BQFilters::lowshelf && type_ <= BQFilters::peak)
+        {
+            calc_coeffs_();
+        }
     }
 }
 
@@ -202,11 +207,14 @@ requires std::floating_point<TSample>
 #endif
 void Biquad<TSample>::set_type(const BQFilters &type)
 {
-    if (type >= BQFilters::lowpass && type <= BQFilters::peak)
+    if (type != type_)
     {
-        type_ = type;
+        if (type >= BQFilters::lowpass && type <= BQFilters::peak)
+        {
+            type_ = type;
 
-        calc_coeffs_();
+            calc_coeffs_();
+        }
     }
 }
 
