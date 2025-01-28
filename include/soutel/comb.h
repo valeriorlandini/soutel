@@ -214,7 +214,7 @@ requires std::floating_point<TSample>
 #endif
 TSample Comb<TSample>::get_feedforward()
 {
-    return feedback_;
+    return feedforward_;
 }
 
 template <typename TSample>
