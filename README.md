@@ -19,10 +19,11 @@ Currently available headers are:
 * `pdosc.h` Phase distortion oscillator
 * `pulsar.h` Pulsar oscillator
 * `randsig.h` Random signal generator with controllable frequency
+* `ringmod.h` Ring and amplitude modulator
 * `roessler.h` Rössler attractor based oscillator
 * `simpleosc.h` Simple non bandlimited multishape oscillator
 * `soutel.h` Utility header file that includes all the single modules
-* `utils.h` Miscellaneous utility functions, such as unit conversion, zero padding, etc.
+* `utils.h` Miscellaneous utility functions, such as unit conversions, zero padding, etc.
 * `window_functions.h` A series of window functions
 * `wtosc.h` Wavetable oscillator
 

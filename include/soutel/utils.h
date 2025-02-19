@@ -47,6 +47,17 @@ inline TSample mtof(const TSample &midi_note, const TSample &a = (TSample)440.0)
 }
 
 template <typename TSample>
+inline TSample scale(const TSample &in, const TSample &in_min, const TSample &in_max, const TSample &out_min, const TSample &out_max)
+{
+    if (in_min == in_max)
+    {
+        return (TSample)0.0;
+    }
+    
+    return out_min + ((in - in_min) * (out_max - out_min) / (in_max - in_min));
+}
+
+template <typename TSample>
 inline std::vector<TSample> zeropad(const std::vector<TSample> &input, const int &size, const bool &center = true)
 {
     std::vector<TSample> output = input;
