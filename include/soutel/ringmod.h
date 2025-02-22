@@ -138,6 +138,15 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
+void RingMod<TSample>::set_am(const bool &am)
+{
+    am_ = am;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void RingMod<TSample>::load_custom_wavetable(const std::vector<TSample> &wavetable)
 {
     wtosc_.set_wavetable(wavetable);
