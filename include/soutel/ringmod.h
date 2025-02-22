@@ -24,6 +24,7 @@ SOFTWARE.
 #define RINGMOD_H_
 
 #include "blosc.h"
+#include "utils.h"
 #include "wtosc.h"
 
 #if __cplusplus >= 202002L
@@ -63,7 +64,7 @@ public:
     bool get_am();
 
     inline TSample run(const TSample &input, const TSample &mod_input = (TSample)0.0);
-    inline void run(const TSample &input, TSample &output, const TSample &mod_input = (TSample)0.0);
+    inline void run(const TSample &input, TSample &output, const TSample &mod_input);
 
     inline TSample get_last_sample();
 

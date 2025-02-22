@@ -225,6 +225,11 @@ requires std::floating_point<TSample>
 #endif
 inline TSample WTOsc<TSample>::run()
 {
+    if (wavetable_.empty())
+    {
+        return (TSample)0.0;
+    }
+    
     read_pos_ += step_;
     while (read_pos_ > (TSample)1.0)
     {
