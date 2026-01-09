@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2023-2025 Valerio Orlandini
+Copyright (c) 2023-2026 Valerio Orlandini
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -108,7 +108,7 @@ typename Container::value_type variance(const Container& buffer)
 template <typename Container, typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<typename Container::value_type> &&
-std::floating_point<typename TSample> &&
+std::floating_point<TSample> &&
 std::same_as<typename Container::value_type, TSample>
 #endif
 typename Container::value_type kurtosis(const Container& buffer, const TSample &mean, const TSample &variance)
@@ -141,6 +141,7 @@ requires std::floating_point<typename Container::value_type>
 typename Container::value_type kurtosis(const Container& buffer)
 {
     using TSample = typename Container::value_type;
+    TSample kurtosis = (TSample)0.0;
     TSample variance = variance(buffer);
 
     if (buffer.empty() || variance == (TSample)0.0)
@@ -152,6 +153,55 @@ typename Container::value_type kurtosis(const Container& buffer)
     const TSample mean = std::accumulate(buffer.begin(), buffer.end(), (TSample)0.0) / count;
 
     return kurtosis(buffer, mean, variance);
+}
+
+template <typename Container, typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<typename Container::value_type> &&
+std::floating_point<TSample> &&
+std::same_as<typename Container::value_type, TSample>
+#endif
+typename Container::value_type skewness(const Container& buffer, const TSample &mean, const TSample &variance)
+{
+    TSample skewness = static_cast<TSample>(0.0);
+
+    if (buffer.empty() || variance == static_cast<TSample>(0.0))
+    {
+        return skewness;
+    }
+
+    TSample invDenominator = (TSample)1.0 / std::pow(std::sqrt(variance), (TSample)3.0);
+
+    for (const auto &s : buffer)
+    {
+        skewness += std::pow(s - mean, (TSample)3.0);
+    }
+
+    skewness /= static_cast<TSample>(buffer.size());
+    skewness *= invDenominator;
+
+    return skewness;
+}
+
+template <typename Container>
+#if __cplusplus >= 202002L
+requires std::floating_point<typename Container::value_type>
+#endif
+typename Container::value_type skewness(const Container& buffer)
+{
+    using TSample = typename Container::value_type;
+    TSample skewness = (TSample)0.0;
+    TSample variance = variance(buffer);
+
+    if (buffer.empty() || variance == (TSample)0.0)
+    {
+        return skewness;
+    }
+
+    const TSample count = static_cast<TSample>(buffer.size());
+    const TSample mean = std::accumulate(buffer.begin(), buffer.end(), (TSample)0.0) / count;
+
+    return skewness(buffer, mean, variance);
 }
 
 }

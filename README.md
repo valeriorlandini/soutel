@@ -1,4 +1,4 @@
-# soutel
+# SouTeL
 SOUnd TEmplate Library - C++ template library for sound generation and processing. 
 
 Currently available headers are:

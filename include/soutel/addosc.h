@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2023-2025 Valerio Orlandini
+Copyright (c) 2023-2026 Valerio Orlandini
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -244,7 +244,6 @@ void AddOsc<TSample>::set_harmonics_phase(const std::vector<TSample> &harmonics_
         {
             harmonics_state_[h].phase = harmonics_phase.at(h);
         }
-    }
     }
 }
 

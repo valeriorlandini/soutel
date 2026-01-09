@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2023-2025 Valerio Orlandini
+Copyright (c) 2023-2026 Valerio Orlandini
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -162,6 +162,9 @@ void Biquad<TSample>::set_sample_rate(const TSample &sample_rate)
 }
 
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Biquad<TSample>::set_cutoff(const TSample &cutoff)
 {
     TSample new_cutoff = std::clamp(cutoff, (TSample)0.001, half_sample_rate_);
@@ -174,6 +177,9 @@ void Biquad<TSample>::set_cutoff(const TSample &cutoff)
 }
 
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void Biquad<TSample>::set_q(const TSample &q)
 {
     if (q != q_)
