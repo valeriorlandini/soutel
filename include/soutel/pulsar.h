@@ -61,7 +61,11 @@ enum class PulsarWindows
     blackmanharris,
     flattop,
     bartletthann,
-    rectangular
+    rectangular,
+    linearup,
+    lineardown,
+    expoup,
+    expodown
 };
 
 template <typename TSample>
@@ -370,6 +374,18 @@ inline TSample Pulsar<TSample>::run()
             break;
         case PulsarWindows::bartletthann:
             output_ *= bartletthann(wave_ramp_);
+            break;
+        case soutel::PulsarWindows::lineardown:
+            output_ *= (TSample)1.0 - wave_ramp_;
+            break;
+        case soutel::PulsarWindows::linearup:
+            output_ *= wave_ramp_;
+            break;
+        case soutel::PulsarWindows::expoup:
+            output_ *= wave_ramp_ * wave_ramp_;
+            break;
+        case soutel::PulsarWindows::expodown:
+            output_ *= ((TSample)1.0 - wave_ramp_) * ((TSample)1.0 - wave_ramp_);
             break;
         }
     }
