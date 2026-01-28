@@ -59,12 +59,14 @@ public:
     void set_frequency(const TSample &frequency);
     void set_latent_space(const std::array<TSample, 8> &latent_space);
     void set_latent_parameter(const int &index, const TSample &value);
+    void set_windowed(const bool &use_window);
     void reset();
 
     TSample get_sample_rate();
     TSample get_frequency();
     std::array<TSample, 8> get_latent_space();
     std::vector<TSample> get_wavetable(const unsigned int &size = 600);
+    bool get_windowed();
 
     inline TSample run();
     inline void run(TSample &output);
@@ -77,10 +79,21 @@ public:
 private:
     std::array<TSample, 8> latent_space_;
     std::vector<TSample> wavetable_;
+    std::array<TSample, 600> window_;
 
     soutel::WTOsc<TSample> oscillator_;
 
     NeuralWeights<TSample> weights_;
+
+    TSample crossfade_ = (TSample)0.05;
+    bool windowed_ = false;
+
+    inline void set_wavetable_()
+    {
+        oscillator_.set_wavetable(wavetable_);
+        oscillator_.crossfade(crossfade_);
+        oscillator_.normalize((TSample)0.95);
+    }
 };
 
 template <typename TSample>
@@ -92,7 +105,11 @@ NeuralWave<TSample>::NeuralWave(const TSample &sample_rate, const TSample &frequ
     oscillator_.set_sample_rate(sample_rate);
     oscillator_.set_frequency(frequency);
     wavetable_ = decode(latent_space);
-    oscillator_.set_wavetable(wavetable_);
+    for (auto i = 0; i < 600; i++)
+    {
+        window_[i] = hann((TSample)i / (TSample)(599.0));
+    }
+    set_wavetable_();
 }
 
 template <typename TSample>
@@ -174,7 +191,8 @@ requires std::floating_point<TSample>
 void NeuralWave<TSample>::set_latent_space(const std::array<TSample, 8> &latent_space)
 {
     latent_space_ = latent_space;
-    oscillator_.set_wavetable(decode(latent_space));
+    wavetable_ = decode(latent_space_);
+    set_wavetable_();
 }
 
 template <typename TSample>
@@ -187,8 +205,17 @@ void NeuralWave<TSample>::set_latent_parameter(const int &index, const TSample &
     {
         latent_space_.at(index) = value;
         wavetable_ = decode(latent_space_);
-        oscillator_.set_wavetable(wavetable_);
+        set_wavetable_();
     }
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+void NeuralWave<TSample>::set_windowed(const bool &use_window)
+{
+    windowed_ = use_window;
 }
 
 template <typename TSample>
@@ -214,6 +241,15 @@ std::vector<TSample> NeuralWave<TSample>::get_wavetable(const unsigned int &size
     {
         return resize_chunk(wavetable_, size);
     }
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool NeuralWave<TSample>::get_windowed()
+{
+    return windowed_;
 }
 
 template <typename TSample>
@@ -255,9 +291,13 @@ std::vector<TSample> NeuralWave<TSample>::decode(const std::array<TSample, 8> &l
             out_sample += latent_space.at(l) * weights_.weights.at(s).at(l);
         }
 
-        out_sample = std::tanh(output);
+        out_sample = std::tanh(out_sample);
 
         output.at(s) = out_sample;
+        if (windowed_)
+        {
+            output.at(s) *= window_.at(s);
+        }
     }
 
     if (size != output.size())
@@ -275,7 +315,7 @@ requires std::floating_point<TSample>
 class NeuralWeights
 {
    public: 
-std::array<std::array<TSample, 8>, 600> weights = {
+std::array<std::array<TSample, 8>, 600> weights = {{
     {(TSample)0.03722768276929855, (TSample)0.08576939254999161, (TSample)-0.11918995529413223, (TSample)-0.1025790125131607, (TSample)0.1920522004365921, (TSample)0.17667576670646667, (TSample)-0.10470889508724213, (TSample)0.00217429525218904},
     {(TSample)0.0972549170255661, (TSample)0.13069918751716614, (TSample)-0.14646492898464203, (TSample)-0.15825383365154266, (TSample)0.25371089577674866, (TSample)0.2845610976219177, (TSample)-0.18034620583057404, (TSample)0.03562922403216362},
     {(TSample)0.13089443743228912, (TSample)0.15183940529823303, (TSample)-0.14255747199058533, (TSample)-0.17040781676769257, (TSample)0.2996736466884613, (TSample)0.31931647658348083, (TSample)-0.20758499205112457, (TSample)0.051433466374874115},
@@ -876,7 +916,7 @@ std::array<std::array<TSample, 8>, 600> weights = {
     {(TSample)0.018189687281847, (TSample)-0.10677535086870193, (TSample)0.26155567169189453, (TSample)0.05941024422645569, (TSample)-0.3082767426967621, (TSample)-0.38624921441078186, (TSample)0.28613799810409546, (TSample)0.028415722772479057},
     {(TSample)0.03491980955004692, (TSample)-0.09228593111038208, (TSample)0.2250501960515976, (TSample)0.043492332100868225, (TSample)-0.2277519553899765, (TSample)-0.3236808776855469, (TSample)0.22693635523319244, (TSample)0.04642796143889427},
     {(TSample)0.024263212457299232, (TSample)-0.054741259664297104, (TSample)0.1306653767824173, (TSample)0.03853192552924156, (TSample)-0.15763503313064575, (TSample)-0.1714523732662201, (TSample)0.11252526938915253, (TSample)0.029635939747095108}
-};
+}};
 std::array<TSample, 600> biases = {
     (TSample)0.10315033793449402,
     (TSample)0.16453203558921814,

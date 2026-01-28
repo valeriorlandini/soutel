@@ -50,6 +50,7 @@ public:
     void reset();
     void resize_wavetable(const int &new_size);
     void normalize(const TSample &amplitude = (TSample)1.0);
+    void crossfade(const TSample &fade = (TSample)0.05);
 
     TSample get_sample_rate();
     TSample get_frequency();
@@ -120,6 +121,36 @@ requires std::floating_point<TSample>
 void WTOsc<TSample>::set_wavetable(const std::vector<TSample> &wavetable)
 {
     wavetable_ = wavetable;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+void WTOsc<TSample>::crossfade(const TSample &fade) {
+    unsigned int s = wavetable_.size();
+    unsigned int fade_length = static_cast<size_t>(s * fade);
+    
+    if (fade_length == 0 || s < 2 * fade_length)
+    {
+        return;
+    }
+    
+    for (auto i = 0; i < fade_length; ++i)
+    {
+        const TSample t = static_cast<TSample>(i) / static_cast<TSample>(fade_length);
+        const unsigned int end_index = s - fade_length + i;
+        
+        // Interpolate from end sample to begin sample
+        const TSample crossfaded_value = cosip(
+            wavetable_[end_index],
+            wavetable_[i],          
+            t
+        );
+        
+        wavetable_[i] = crossfaded_value;
+        wavetable_[end_index] = crossfaded_value;
+    }
 }
 
 template <typename TSample>
