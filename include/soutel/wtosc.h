@@ -24,6 +24,7 @@ SOFTWARE.
 #define WTOSC_H_
 
 #include "interp.h"
+#include "window_functions.h"
 
 #if __cplusplus >= 202002L
 #include<concepts>
