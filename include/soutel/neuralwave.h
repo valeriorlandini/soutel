@@ -28,7 +28,6 @@ SOFTWARE.
 #include <cmath>
 #include <vector>
 #include "interp.h"
-#include "window_functions.h"
 #include "wtosc.h"
 
 #if __cplusplus >= 202002L
@@ -53,7 +52,8 @@ class NeuralWave
 public:
     NeuralWave(const TSample &sample_rate = (TSample)44100.0,
                const TSample &frequency = (TSample)0.0,
-               const std::array<TSample, 8> &latent_space = {(TSample)0.0});
+               const std::array<TSample, 8> &latent_space = {(TSample)0.0},
+               const bool &use_window = false);
 
     void set_sample_rate(const TSample &sample_rate);
     void set_frequency(const TSample &frequency);
@@ -79,7 +79,6 @@ public:
 private:
     std::array<TSample, 8> latent_space_;
     std::vector<TSample> wavetable_;
-    std::array<TSample, 600> window_;
 
     soutel::WTOsc<TSample> oscillator_;
 
@@ -100,15 +99,11 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-NeuralWave<TSample>::NeuralWave(const TSample &sample_rate, const TSample &frequency, const std::array<TSample, 8> &latent_space)
+NeuralWave<TSample>::NeuralWave(const TSample &sample_rate, const TSample &frequency, const std::array<TSample, 8> &latent_space, const bool &use_window)
 {
     oscillator_.set_sample_rate(sample_rate);
     oscillator_.set_frequency(frequency);
     wavetable_ = decode(latent_space);
-    for (auto i = 0; i < 600; i++)
-    {
-        window_[i] = hann((TSample)i / (TSample)(599.0));
-    }
     set_wavetable_();
 }
 
@@ -216,6 +211,7 @@ requires std::floating_point<TSample>
 void NeuralWave<TSample>::set_windowed(const bool &use_window)
 {
     windowed_ = use_window;
+    oscillator_.set_windowed(windowed_);
 }
 
 template <typename TSample>
@@ -294,10 +290,6 @@ std::vector<TSample> NeuralWave<TSample>::decode(const std::array<TSample, 8> &l
         out_sample = std::tanh(out_sample);
 
         output.at(s) = out_sample;
-        if (windowed_)
-        {
-            output.at(s) *= window_.at(s);
-        }
     }
 
     if (size != output.size())

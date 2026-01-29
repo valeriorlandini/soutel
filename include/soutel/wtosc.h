@@ -47,6 +47,8 @@ public:
     void set_frequency(const TSample &frequency);
     void set_wavetable(const std::vector<TSample> &wavetable);
     void set_sample(const TSample &sample, const int &index);
+    void set_windowed(const bool &apply_window);
+    void set_windowed(const std::vector<TSample> &window);
     void reset();
     void resize_wavetable(const int &new_size);
     void normalize(const TSample &amplitude = (TSample)1.0);
@@ -55,6 +57,8 @@ public:
     TSample get_sample_rate();
     TSample get_frequency();
     std::vector<TSample> get_wavetable();
+    bool get_windowed();
+    std::vector<TSample> get_window();
     TSample get_sample(const int &index);
 
     inline TSample run();
@@ -72,6 +76,44 @@ private:
     TSample output_;
 
     std::vector<TSample> wavetable_;
+    std::vector<TSample> original_wavetable_;
+    std::vector<TSample> window_;
+    bool windowed_ = false;
+
+    inline void apply_window_()
+    {
+        if (windowed_ && !wavetable_.empty())
+        {
+            if (window_.size() != wavetable_.size())
+            {
+                window_ = resize_chunk(window_, wavetable_.size());
+            }
+            for (auto i = 0; i < wavetable_.size(); i++)
+            {
+                wavetable_[i] *= window_[i];
+            }
+        }
+    }
+
+    inline void generate_window_()
+    {
+        if (!wavetable_.empty())
+        {
+            window_.resize(wavetable_.size());
+            for (auto i = 0; i < wavetable_.size(); i++)
+            {
+                window_[i] = hann((TSample)i / (TSample)(wavetable_.size() - 1));
+            }
+        }
+        else
+        {
+            window_.resize(512);
+            for (auto i = 0; i < 512; i++)
+            {
+                window_[i] = hann((TSample)i / (TSample)511.0);
+            }
+        }
+    }
 };
 
 template <typename TSample>
@@ -85,6 +127,8 @@ WTOsc<TSample>::WTOsc(const TSample &sample_rate, const TSample &frequency, cons
     set_sample_rate(sample_rate);
 
     set_wavetable(wavetable);
+
+    generate_window_();
 
     reset();
 }
@@ -121,6 +165,41 @@ requires std::floating_point<TSample>
 void WTOsc<TSample>::set_wavetable(const std::vector<TSample> &wavetable)
 {
     wavetable_ = wavetable;
+    original_wavetable_ = wavetable_;
+    apply_window_();
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+void WTOsc<TSample>::set_windowed(const bool &apply_window)
+{
+    windowed_ = apply_window;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+void WTOsc<TSample>::set_windowed(const std::vector<TSample> &window)
+{
+    if (window.empty())
+    {
+        windowed_ = false;
+        return;
+    }
+
+    if (window.size() != wavetable_.size())
+    {
+        window_ = resize_chunk(window, wavetable_.size());
+    }
+    else
+    {
+        window_ = window;
+    }
+
+    windowed_ = true;
 }
 
 template <typename TSample>
@@ -135,6 +214,8 @@ void WTOsc<TSample>::crossfade(const TSample &fade) {
     {
         return;
     }
+
+    wavetable_ = original_wavetable_;
     
     for (auto i = 0; i < fade_length; ++i)
     {
@@ -142,15 +223,24 @@ void WTOsc<TSample>::crossfade(const TSample &fade) {
         const unsigned int end_index = s - fade_length + i;
         
         // Interpolate from end sample to begin sample
-        const TSample crossfaded_value = cosip(
+        const TSample crossfaded_value_start = linip(
             wavetable_[end_index],
             wavetable_[i],          
             t
         );
         
-        wavetable_[i] = crossfaded_value;
-        wavetable_[end_index] = crossfaded_value;
+        wavetable_[i] = crossfaded_value_start;
+
+        const TSample crossfaded_value_end = linip(
+            wavetable_[i],
+            wavetable_[end_index],
+            t
+        );
+
+        wavetable_[end_index] = crossfaded_value_end;
     }
+
+    apply_window_();
 }
 
 template <typename TSample>
@@ -161,7 +251,7 @@ void WTOsc<TSample>::set_sample(const TSample &sample, const int &index)
 {
     if (index >= 0 && index < wavetable_.size())
     {
-        wavetable_.at(index) = sample;
+        wavetable_[index] = sample;
     }
 }
 
@@ -190,6 +280,24 @@ requires std::floating_point<TSample>
 std::vector<TSample> WTOsc<TSample>::get_wavetable()
 {
     return wavetable_;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool WTOsc<TSample>::get_windowed()
+{
+    return windowed_;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+std::vector<TSample> WTOsc<TSample>::get_window()
+{
+    return window_;
 }
 
 template <typename TSample>
