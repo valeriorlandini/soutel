@@ -177,6 +177,7 @@ requires std::floating_point<TSample>
 void WTOsc<TSample>::set_windowed(const bool &apply_window)
 {
     windowed_ = apply_window;
+    apply_window_();
 }
 
 template <typename TSample>
@@ -201,6 +202,7 @@ void WTOsc<TSample>::set_windowed(const std::vector<TSample> &window)
     }
 
     windowed_ = true;
+    apply_window_();
 }
 
 template <typename TSample>
