@@ -80,21 +80,7 @@ private:
     std::vector<TSample> original_wavetable_;
     std::vector<TSample> window_;
     bool windowed_ = false;
-
-    inline void apply_window_()
-    {
-        if (windowed_ && !wavetable_.empty())
-        {
-            if (window_.size() != wavetable_.size())
-            {
-                window_ = resize_chunk(window_, wavetable_.size());
-            }
-            for (auto i = 0; i < wavetable_.size(); i++)
-            {
-                wavetable_[i] *= window_[i];
-            }
-        }
-    }
+    TSample fade_ = (TSample)0.0;
 
     inline void generate_window_()
     {
@@ -167,7 +153,7 @@ void WTOsc<TSample>::set_wavetable(const std::vector<TSample> &wavetable)
 {
     wavetable_ = wavetable;
     original_wavetable_ = wavetable_;
-    apply_window_();
+    generate_window_();
 }
 
 template <typename TSample>
@@ -177,7 +163,6 @@ requires std::floating_point<TSample>
 void WTOsc<TSample>::set_windowed(const bool &apply_window)
 {
     windowed_ = apply_window;
-    apply_window_();
 }
 
 template <typename TSample>
@@ -202,7 +187,6 @@ void WTOsc<TSample>::set_windowed(const std::vector<TSample> &window)
     }
 
     windowed_ = true;
-    apply_window_();
 }
 
 template <typename TSample>
@@ -211,7 +195,8 @@ requires std::floating_point<TSample>
 #endif
 void WTOsc<TSample>::crossfade(const TSample &fade) {
     unsigned int s = wavetable_.size();
-    unsigned int fade_length = static_cast<size_t>(s * fade);
+    fade_ = fade;
+    unsigned int fade_length = static_cast<size_t>(s * fade_);
     
     if (fade_length == 0 || s < 2 * fade_length)
     {
@@ -225,7 +210,6 @@ void WTOsc<TSample>::crossfade(const TSample &fade) {
         const TSample t = static_cast<TSample>(i) / static_cast<TSample>(fade_length);
         const unsigned int end_index = s - fade_length + i;
         
-        // Interpolate from end sample to begin sample
         const TSample crossfaded_value_start = linip(
             wavetable_[end_index],
             wavetable_[i],          
@@ -243,7 +227,6 @@ void WTOsc<TSample>::crossfade(const TSample &fade) {
         wavetable_[end_index] = crossfaded_value_end;
     }
 
-    apply_window_();
 }
 
 template <typename TSample>
@@ -387,6 +370,12 @@ inline TSample WTOsc<TSample>::run()
     int pos2 = (int)std::ceil(wt_point) % wavetable_.size();
 
     output_ = cosip(wavetable_.at(pos1), wavetable_.at(pos2), wt_point - std::floor(wt_point));
+
+    if (windowed_)
+    {
+        TSample window_sample = cosip(window_.at(pos1), window_.at(pos2), wt_point - std::floor(wt_point));
+        output_ *= window_sample;
+    }
 
     return output_;
 }
