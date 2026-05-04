@@ -287,10 +287,8 @@ inline TSample Pulsar<TSample>::run()
     output_ = 0.0;
 
     ramp_ += step_;
-    if (ramp_ > duty_cycle_)
-    {
-        gen_wave_ = false;
-    }
+    gen_wave_ = (ramp_ <= duty_cycle_);
+    
     if (abs(ramp_) > 1.0)
     {
         while (abs(ramp_) > 1.0)
