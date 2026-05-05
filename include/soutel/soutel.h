@@ -23,6 +23,17 @@ SOFTWARE.
 #ifndef SOUTEL_H_
 #define SOUTEL_H_
 
+// If C++ standard is less than C++17, define std::clamp function,
+// but you should *really* be using C++17 or later.
+#if __cplusplus < 201703L
+namespace std {
+    template <typename T>
+    const T& clamp(const T& v, const T& lo, const T& hi) {
+        return (v < lo) ? lo : (hi < v) ? hi : v;
+    }
+}
+#endif
+
 #include "addosc.h"
 #include "allpass.h"
 #include "biquad.h"
