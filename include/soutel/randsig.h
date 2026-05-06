@@ -56,6 +56,22 @@ public:
 
     inline TSample get_last_sample();
 
+    Randsig(const Randsig&) = delete;
+    Randsig& operator=(const Randsig&) = delete;
+
+    Randsig(Randsig&& other) noexcept
+        : sample_rate_(other.sample_rate_),
+          half_sample_rate_(other.half_sample_rate_),
+          frequency_(other.frequency_),
+          sample_count_(other.sample_count_),
+          steps_(other.steps_),
+          gen_(other.rd_()),
+          rand_dist_(other.rand_dist_),
+          current_(other.current_),
+          next_(other.next_),
+          output_(other.output_)
+    {}
+
 private:
     TSample sample_rate_;
     TSample half_sample_rate_;
