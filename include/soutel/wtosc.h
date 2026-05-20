@@ -50,6 +50,7 @@ public:
     void set_sample(const TSample &sample, const int &index);
     void set_windowed(const bool &apply_window);
     void set_windowed(const std::vector<TSample> &window);
+    void set_interpolation(const bool &enable);
     void reset();
     void resize_wavetable(const int &new_size);
     void normalize(const TSample &amplitude = (TSample)1.0);
@@ -61,6 +62,7 @@ public:
     bool get_windowed();
     std::vector<TSample> get_window();
     TSample get_sample(const int &index);
+    bool get_interpolation();
 
     inline TSample run();
 
@@ -80,6 +82,7 @@ private:
     std::vector<TSample> original_wavetable_;
     std::vector<TSample> window_;
     bool windowed_ = false;
+    bool interpolation_ = true;
     TSample fade_ = (TSample)0.0;
 
     inline void generate_window_()
@@ -193,6 +196,15 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
+void WTOsc<TSample>::set_interpolation(const bool &enable)
+{
+    interpolation_ = enable;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 void WTOsc<TSample>::crossfade(const TSample &fade) {
     unsigned int s = wavetable_.size();
     fade_ = fade;
@@ -290,6 +302,15 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
+bool WTOsc<TSample>::get_interpolation()
+{
+    return interpolation_;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 TSample WTOsc<TSample>::get_sample(const int &index)
 {
     if (index >= 0 && index < wavetable_.size())
@@ -366,10 +387,19 @@ inline TSample WTOsc<TSample>::run()
     }
 
     TSample wt_point = read_pos_ * (TSample)(wavetable_.size() - 1);
-    int pos1 = (int)std::floor(wt_point) % wavetable_.size();
-    int pos2 = (int)std::ceil(wt_point) % wavetable_.size();
 
-    output_ = cosip(wavetable_.at(pos1), wavetable_.at(pos2), wt_point - std::floor(wt_point));
+    if (!interpolation_)
+    {
+        int index = (int)std::round(wt_point) % wavetable_.size();
+        output_ = wavetable_.at(index);
+    }
+    else
+    {
+        int pos1 = (int)std::floor(wt_point) % wavetable_.size();
+        int pos2 = (int)std::ceil(wt_point) % wavetable_.size();
+
+        output_ = cosip(wavetable_.at(pos1), wavetable_.at(pos2), wt_point - std::floor(wt_point));
+    }
 
     if (windowed_)
     {
