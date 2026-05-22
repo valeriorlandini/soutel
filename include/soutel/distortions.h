@@ -23,6 +23,8 @@ SOFTWARE.
 #ifndef DISTORTIONS_H_
 #define DISTORTIONS_H_
 
+#include "interp.h"
+
 #include <algorithm>
 #include <cmath>
 
@@ -57,6 +59,57 @@ inline TSample symmetrical_soft_clip(const TSample &sample,
     {
         sample_out = std::copysign((TSample)1.0, sample);
     }
+
+    return sample_out;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+inline TSample dropout(const TSample &sample,
+                       const TSample &alpha = (TSample)0.6)
+{
+    TSample b = std::sqrt(std::pow(alpha, (TSample)3.0) / (TSample)3.0);
+    TSample sample_out = (TSample)0.0;
+
+    if (sample < -b)
+    {
+        sample_out = sample + b - std::pow(b / alpha, (TSample)3.0);
+    }
+    else if (sample >= -b && sample <= b)
+    {
+        sample_out = std::pow(sample / alpha, (TSample)3.0);
+    }
+    else
+    {
+        sample_out = sample - b + std::pow(b / alpha, (TSample)3.0);
+    }
+
+    return sample_out;
+}
+
+template <typename Container, typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<typename Container::value_type> &&
+std::floating_point<TSample> &&
+std::same_as<typename Container::value_type, TSample>
+#endif
+inline typename Container::value_type waveshape(const TSample &sample, const Container& buffer)
+{
+    TSample sample_out = (TSample)0.0;
+    if (buffer.empty())
+    {
+        return sample_out;
+    }
+
+    TSample position = sample * (static_cast<TSample>(buffer.size()) - (TSample)1.0);
+    unsigned int index = static_cast<unsigned int>(std::floor(position));
+    TSample t = position - static_cast<TSample>(index);
+    TSample a = buffer[index % buffer.size()];
+    TSample b = buffer[(index + 1) % buffer.size()];
+
+    sample_out = cosip(a, b, t);
 
     return sample_out;
 }
