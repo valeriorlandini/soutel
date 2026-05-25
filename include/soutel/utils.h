@@ -35,18 +35,50 @@ namespace soutel
 {
 
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample ftom(const TSample &freq, const TSample &a = (TSample)440.0)
 {
     return (TSample)69.0 + (TSample)(12.0 * log2(abs((double)freq) / abs((double)a)));
 }
 
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample mtof(const TSample &midi_note, const TSample &a = (TSample)440.0)
 {
     return a * (TSample)pow(2.0, ((double)midi_note - 69.0) / 12.0);
 }
 
+template <typename Container, typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<typename Container::value_type> &&
+std::floating_point<TSample> &&
+std::same_as<typename Container::value_type, TSample>
+#endif
+inline typename Container::value_type normalize(const Container &buffer, const TSample &amplitude)
+{
+    TSample max_value = static_cast<TSample>(0.0);
+
+    for (const auto &sample : buffer)
+    {
+        max_value = std::max(max_value, abs(sample));
+    }
+
+    for (auto &sample : buffer)
+    {
+        sample = max_value != static_cast<TSample>(0.0) ? (sample / max_value) * amplitude : static_cast<TSample>(0.0);
+    }
+
+    return buffer;
+}
+
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline TSample scale(const TSample &in, const TSample &in_min, const TSample &in_max, const TSample &out_min, const TSample &out_max)
 {
     if (in_min == in_max)
@@ -58,6 +90,9 @@ inline TSample scale(const TSample &in, const TSample &in_min, const TSample &in
 }
 
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline std::vector<TSample> zeropad(const std::vector<TSample> &input, const int &size, const bool &center = true)
 {
     std::vector<TSample> output = input;
@@ -67,6 +102,9 @@ inline std::vector<TSample> zeropad(const std::vector<TSample> &input, const int
 }
 
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void zeropad_inplace(std::vector<TSample> &input, const int &size, const bool &center = true)
 {
     if (size > input.size())
@@ -88,6 +126,9 @@ inline void zeropad_inplace(std::vector<TSample> &input, const int &size, const 
 }
 
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline std::vector<TSample> zerophase(const std::vector<TSample> &input)
 {
     std::vector<TSample> output = input;
@@ -98,6 +139,9 @@ inline std::vector<TSample> zerophase(const std::vector<TSample> &input)
 }
 
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void zerophase_inplace(std::vector<TSample> &input)
 {
     auto middle = input.begin() + input.size() / 2;
@@ -106,6 +150,9 @@ inline void zerophase_inplace(std::vector<TSample> &input)
 }
 
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline std::vector<TSample> zeropadphase(const std::vector<TSample> &input, const int &size)
 {
     std::vector<TSample> output = zeropad(input, size);
@@ -115,6 +162,9 @@ inline std::vector<TSample> zeropadphase(const std::vector<TSample> &input, cons
 }
 
 template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 inline void zeropadphase_inplace(std::vector<TSample> &input, const int &size)
 {
     zeropad_inplace(input, size);
