@@ -388,6 +388,9 @@ inline TSample WTOsc<TSample>::run()
 
     TSample wt_point = read_pos_ * (TSample)(wavetable_.size() - 1);
 
+    int pos1 = (int)std::floor(wt_point) % wavetable_.size();
+    int pos2 = (int)std::ceil(wt_point) % wavetable_.size();
+    
     if (!interpolation_)
     {
         int index = (int)std::round(wt_point) % wavetable_.size();
@@ -395,9 +398,6 @@ inline TSample WTOsc<TSample>::run()
     }
     else
     {
-        int pos1 = (int)std::floor(wt_point) % wavetable_.size();
-        int pos2 = (int)std::ceil(wt_point) % wavetable_.size();
-
         output_ = cosip(wavetable_.at(pos1), wavetable_.at(pos2), wt_point - std::floor(wt_point));
     }
 

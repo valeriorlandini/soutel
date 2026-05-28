@@ -74,6 +74,8 @@ public:
     TSample get_sample(const int &index);
 
     bool mute(const unsigned int &keep = 1u, const unsigned int &mute = 0u);
+    bool shuffle(const unsigned int &group_size = 1u);
+    bool reverse(const unsigned int &group_size = 1u);
 
 
 private:
@@ -84,7 +86,7 @@ private:
 
     std::vector<waveset_params<TSample>> wavesets_idx_;
 
-    inline void analyse()
+    inline void analyse_()
     {
         if (!buffer_.empty())
         {
@@ -178,9 +180,8 @@ requires std::floating_point<TSample>
 #endif
 void Wavesets<TSample>::normalize_buffer(const TSample &amplitude)
 {
-    TSample max_value = 0.0;
-    for (const auto &sample : buffer_)
-    
+    buffer_ = normalize(buffer_, amplitude);
+}
 
 template <typename TSample>
 #if __cplusplus >= 202002L
@@ -188,7 +189,7 @@ requires std::floating_point<TSample>
 #endif
 bool Wavesets<TSample>::mute(const unsigned int &keep, const unsigned int &mute)
 {
-    analyse();
+    analyse_();
     if (!buffer_.empty() && (kept + mute))
     {
         for (int w = 0; w < wavesets_idx_.size(); ++w)
@@ -207,6 +208,84 @@ bool Wavesets<TSample>::mute(const unsigned int &keep, const unsigned int &mute)
     }
     return false;
 };
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool Wavesets<TSample>::shuffle(const unsigned int &group_size)
+{
+    analyse_();
+    if (!buffer_.empty() && group_size >= 1u)
+    {
+        int groups = std::max(1, int(ceil((TSample)wavesets_idx_.size() / (TSample)group_size)));
+        if (groups == 1)
+        {
+            return false;
+        }
+
+        auto rand_dev = std::random_device{}; 
+        auto rand_eng = std::default_random_engine{rand_dev()};
+        std::vector<int> ws(groups);
+        std::iota(std::begin(ws), std::end(ws), 0);
+        std::shuffle(std::begin(ws), std::end(ws), rand_eng);
+        std::vector<TSample> new_buffer;
+
+        for (int g = 0; g < groups; g++)
+        {
+            int ws_begin = ws.at(g) * group_size;
+            int ws_end = std::min(int(wavesets_idx_.size()), (ws.at(g) + 1) * group_size) - 1;
+            
+            int start = wavesets_idx_.at(ws_begin).start;
+            int end = wavesets_idx_.at(ws_end).end;
+           
+            for (int s = start; s <= end; ++s)
+            {
+                new_buffer.push_back(buffer_.at(s));
+            }
+        }
+
+        buffer_ = new_buffer;
+
+        return true;
+    }
+    return false;
+};
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool Wavesets<TSample>::reverse(const unsigned int &group_size)
+{
+    analyse_();
+    if (!buffer_.empty() && group_size >= 1u)
+    {
+        for (int w = 0; w < wavesets_idx_.size(); w += group_size)
+        {
+            int start = wavesets_idx_.at(w).start;
+            int end = wavesets_idx_.at(std::min(int(wavesets_idx_.size()) - 1, w + group_size - 1)).end;
+            
+            std::vector<TSample> curr_waveset;
+
+            for (int s = end; s >= start; --s)
+            {
+                curr_waveset.push_back(buffer_.at(s));
+            }
+
+            int pos = 0;
+
+            for (int s = start; s <= end; ++s)
+            {
+                buffer_.at(s) = curr_waveset.at(pos++);
+            }
+        }
+
+        return true;
+    }
+    return false;
+};
+
 
 
 class wavesets : public object<wavesets>
