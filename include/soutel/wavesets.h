@@ -25,13 +25,19 @@ SOFTWARE.
 
 #include <algorithm>
 #include <random>
+#if __cplusplus >= 202002L
+#include<span>
+#endif
 #include "biquad.h"
 #include "interp.h"
 
 namespace soutel
 {
 
-template <class TSample>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 struct waveset_params
 {
     unsigned int start;
@@ -53,6 +59,28 @@ enum Shapes
     PULSE,
     TRIANGLE
 };
+
+enum class FilterType
+{
+    LOWPASS,
+    HIGHPASS,
+    BANDPASS,
+    NOTCH,
+    NONE
+};
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+struct filter_params
+{
+    unsigned int group_size;
+    FilterType type;
+    TSample cutoff;
+};
+
+
 
 template <typename TSample>
 #if __cplusplus >= 202002L
@@ -76,6 +104,15 @@ public:
     bool mute(const unsigned int &keep = 1u, const unsigned int &mute = 0u);
     bool shuffle(const unsigned int &group_size = 1u);
     bool reverse(const unsigned int &group_size = 1u);
+    bool average(const unsigned int &group_size = 1u);
+    bool mirshrink(const unsigned int &group_size = 1u);
+    bool multiply(const unsigned int &group_size = 1u);
+    bool mix(const unsigned int &group_size = 1u);
+    bool power(const unsigned int &group_size = 1u);
+    bool stretch(const unsigned int &group_size = 1u, const TSample &stretch_factor = (TSample)1.0);
+    #if __cplusplus >= 202002L
+    bool filter(const std::span<const filter_params<TSample>> &filters);
+    #endif
 
 
 private:
@@ -280,6 +317,63 @@ bool Wavesets<TSample>::reverse(const unsigned int &group_size)
                 buffer_.at(s) = curr_waveset.at(pos++);
             }
         }
+
+        return true;
+    }
+    return false;
+};
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool Wavesets<TSample>::average(const unsigned int &group_size)
+{
+    analyse_();
+    if (!buffer_.empty() && group_size >= 1u)
+    {
+        std::vector<TSample> new_buffer;
+        int max_length = 0;
+
+        for (int w = 0; w < wavesets_idx_.size(); w += group_size)
+        {
+            int start_curr = wavesets_idx_.at(w).start;
+            int end_curr = wavesets_idx_.at(std::min(int(wavesets_idx_.size()) - 1, w + group_size - 1)).end;
+            
+            int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
+            int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
+            
+            std::vector<TSample> curr_waveset;
+            std::vector<TSample> next_waveset;
+
+            if (end_curr < start_curr)
+            {
+                end_curr += buffer_.size();
+            }
+            for (int s = start_curr; s <= end_curr; ++s)
+            {
+                curr_waveset.push_back(buffer_.at(s % buffer_.size()));
+            }
+
+            if (end_next < start_next)
+            {
+                end_next += buffer_.size();
+            }
+            for (int s = start_next; s <= end_next; ++s)
+            {
+                next_waveset.push_back(buffer_.at(s % buffer_.size()));
+            }
+
+            auto avg_size = (curr_waveset.size() + next_waveset.size()) / 2;
+            std::vector<TSample> resized_curr = resize_chunk(curr_waveset, avg_size);
+            std::vector<TSample> resized_next = resize_chunk(next_waveset, avg_size);
+
+            for (int s = 0; s < avg_size; s++)
+            {
+                new_buffer.push_back((resized_curr.at(s) + resized_next.at(s)) * (TSample)0.5);
+            }
+        }
+        buffer_ = new_buffer;
 
         return true;
     }
