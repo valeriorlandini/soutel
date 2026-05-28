@@ -380,7 +380,161 @@ bool Wavesets<TSample>::average(const unsigned int &group_size)
     return false;
 };
 
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool Wavesets<TSample>::mirshrink(const unsigned int &group_size)
+{
+    analyse_();
+    if (!buffer_.empty() && group_size >= 1u)
+    {
+        std::vector<TSample> new_buffer;
+        int max_length = 0;
 
+        for (int w = 0; w < wavesets_idx_.size(); w += group_size)
+        {
+            int start = wavesets_idx_.at(w).start;
+            int end = wavesets_idx_.at(std::min(int(wavesets_idx_.size()) - 1, w + group_size - 1)).end;
+            
+            std::vector<TSample> curr_waveset;
+
+            for (int s = start; s <= end; ++s)
+            {
+                curr_waveset.push_back(buffer_.at(s));
+            }
+            for (int s = end; s >= start; --s)
+            {
+                curr_waveset.push_back(buffer_.at(s));
+            }
+
+            auto resized_curr = resize_chunk(curr_waveset, curr_waveset.size() / 2);
+
+            for (int s = 0; s < resized_curr.size(); s++)
+            {
+                new_buffer.push_back(resized_curr.at(s));
+            }
+        }
+        buffer_ = new_buffer;
+
+        return true;
+    }
+    return false;
+};
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool Wavesets<TSample>::multiply(const unsigned int &group_size)
+{
+    analyse_();
+    if (!buffer_.empty() && group_size >= 1u)
+    {
+        std::vector<TSample> new_buffer;
+
+        for (int w = 0; w < wavesets_idx_.size(); w += group_size)
+        {
+            int start_curr = wavesets_idx_.at(w).start;
+            int end_curr = wavesets_idx_.at(std::min(int(wavesets_idx_.size()) - 1, w + group_size - 1)).end;
+
+            int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
+            int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
+            
+            std::vector<TSample> curr_waveset;
+            std::vector<TSample> next_waveset;
+
+            if (end_curr < start_curr)
+            {
+                end_curr += buffer_.size();
+            }
+
+            for (int s = start_curr; s <= end_curr; ++s)
+            {
+                curr_waveset.push_back(buffer_.at(s));
+            }
+
+            if (end_next < start_next)
+            {
+                end_next += buffer_.size();
+            }
+
+            for (int s = start_next; s <= end_next; ++s)
+            {
+                next_waveset.push_back(buffer_.at(s % buffer_.size()));
+            }
+
+            std::vector<TSample> resized_next = resize_chunk(next_waveset, curr_waveset.size());
+
+            for (int s = 0; s < curr_waveset.size(); s++)
+            {
+                new_buffer.push_back(curr_waveset.at(s) * resized_next.at(s));
+            }
+        }
+        buffer_ = new_buffer;
+
+        return true;
+    }
+    return false;
+};
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool Wavesets<TSample>::mix(const unsigned int &group_size)
+{
+    analyse_();
+    if (!buffer_.empty() && group_size >= 1u)
+    {
+        std::vector<TSample> new_buffer;
+
+        for (int w = 0; w < wavesets_idx_.size(); w += group_size)
+        {
+            int start_curr = wavesets_idx_.at(w).start;
+            int end_curr = wavesets_idx_.at(std::min(int(wavesets_idx_.size()) - 1, w + group_size - 1)).end;
+
+            int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
+            int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
+            
+            std::vector<TSample> curr_waveset;
+            std::vector<TSample> next_waveset;
+
+            if (end_curr < start_curr)
+            {
+                end_curr += buffer_.size();
+            }
+
+            for (int s = start_curr; s <= end_curr; ++s)
+            {
+                curr_waveset.push_back(buffer_.at(s % buffer_.size()));
+            }
+
+            if (end_next < start_next)
+            {
+                end_next += buffer_.size();
+            }
+
+            for (int s = start_next; s <= end_next; ++s)
+            {
+                next_waveset.push_back(buffer_.at(s % buffer_.size()));
+            }
+
+            std::vector<TSample> resized_next = resize_chunk(next_waveset, curr_waveset.size());
+
+            for (int s = 0; s < curr_waveset.size(); s++)
+            {
+                new_buffer.push_back((curr_waveset.at(s) + resized_next.at(s)) * (TSample)0.5);
+            }
+        }
+        buffer_ = new_buffer;
+
+        return true;
+     }
+     return false;
+};
+
+/*
 
 class wavesets : public object<wavesets>
 {
@@ -1552,7 +1706,7 @@ private:
         }
     }
 };
-
+*/
 }
 
 #endif // WAVESETS_H_
