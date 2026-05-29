@@ -25,6 +25,7 @@ Currently available headers are:
 * `simpleosc.h` Simple non bandlimited multishape oscillator
 * `soutel.h` Utility header file that includes all the single modules
 * `utils.h` Miscellaneous utility functions, such as unit conversions, zero padding, etc.
+* `wavesets.h` Manipulation of wavesets, as described by T. Wishart, in buffers
 * `window_functions.h` A series of window functions
 * `wtosc.h` Wavetable oscillator
 
