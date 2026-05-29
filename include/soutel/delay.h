@@ -229,7 +229,7 @@ inline TSample Delay<TSample>::run(const TSample &input)
     {
         return (TSample)0.0;
     }
-    
+
     output_ = cosip(buffer_.at(read_pos_[0]), buffer_.at(read_pos_[1]), delay_interp_);
 
     buffer_.at(write_pos_) = input + (output_ * feedback_);

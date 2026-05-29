@@ -205,36 +205,37 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
-void WTOsc<TSample>::crossfade(const TSample &fade) {
+void WTOsc<TSample>::crossfade(const TSample &fade)
+{
     unsigned int s = wavetable_.size();
     fade_ = fade;
     unsigned int fade_length = static_cast<size_t>(s * fade_);
-    
+
     if (fade_length == 0 || s < 2 * fade_length)
     {
         return;
     }
 
     wavetable_ = original_wavetable_;
-    
+
     for (auto i = 0; i < fade_length; ++i)
     {
         const TSample t = static_cast<TSample>(i) / static_cast<TSample>(fade_length);
         const unsigned int end_index = s - fade_length + i;
-        
+
         const TSample crossfaded_value_start = linip(
-            wavetable_[end_index],
-            wavetable_[i],          
-            t
-        );
-        
+                wavetable_[end_index],
+                wavetable_[i],
+                t
+                                               );
+
         wavetable_[i] = crossfaded_value_start;
 
         const TSample crossfaded_value_end = linip(
-            wavetable_[i],
-            wavetable_[end_index],
-            t
-        );
+                wavetable_[i],
+                wavetable_[end_index],
+                t
+                                             );
 
         wavetable_[end_index] = crossfaded_value_end;
     }
@@ -375,7 +376,7 @@ inline TSample WTOsc<TSample>::run()
     {
         return (TSample)0.0;
     }
-    
+
     read_pos_ += step_;
     while (read_pos_ > (TSample)1.0)
     {
@@ -390,7 +391,7 @@ inline TSample WTOsc<TSample>::run()
 
     int pos1 = (int)std::floor(wt_point) % wavetable_.size();
     int pos2 = (int)std::ceil(wt_point) % wavetable_.size();
-    
+
     if (!interpolation_)
     {
         int index = (int)std::round(wt_point) % wavetable_.size();

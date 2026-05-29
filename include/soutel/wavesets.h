@@ -60,15 +60,6 @@ enum Shapes
     TRIANGLE
 };
 
-enum class FilterType
-{
-    LOWPASS,
-    HIGHPASS,
-    BANDPASS,
-    NOTCH,
-    NONE
-};
-
 template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
@@ -76,7 +67,7 @@ requires std::floating_point<TSample>
 struct filter_params
 {
     unsigned int group_size;
-    FilterType type;
+    BQFilters type;
     TSample cutoff;
 };
 
@@ -110,10 +101,11 @@ public:
     bool mix(const unsigned int &group_size = 1u);
     bool power(const unsigned int &group_size = 1u);
     bool stretch(const unsigned int &group_size = 1u, const TSample &stretch_factor = (TSample)1.0);
-    #if __cplusplus >= 202002L
+#if __cplusplus >= 202002L
     bool filter(const std::span<const filter_params<TSample>> &filters);
-    #endif
-
+#endif
+    bool same(const TSample &size, const bool &unit_is_ms = true);
+    bool reshape(const Shapes &shape);
 
 private:
     TSample sample_rate_;
@@ -227,7 +219,7 @@ requires std::floating_point<TSample>
 bool Wavesets<TSample>::mute(const unsigned int &keep, const unsigned int &mute)
 {
     analyse_();
-    if (!buffer_.empty() && (kept + mute))
+    if (!buffer_.empty() && (keep + mute))
     {
         for (int w = 0; w < wavesets_idx_.size(); ++w)
         {
@@ -240,11 +232,12 @@ bool Wavesets<TSample>::mute(const unsigned int &keep, const unsigned int &mute)
                     buffer_.at(s) = static_cast<TSample>(0.0);
                 }
             }
-        }            
+        }
         return true;
     }
+
     return false;
-};
+}
 
 template <typename TSample>
 #if __cplusplus >= 202002L
@@ -261,7 +254,7 @@ bool Wavesets<TSample>::shuffle(const unsigned int &group_size)
             return false;
         }
 
-        auto rand_dev = std::random_device{}; 
+        auto rand_dev = std::random_device{};
         auto rand_eng = std::default_random_engine{rand_dev()};
         std::vector<int> ws(groups);
         std::iota(std::begin(ws), std::end(ws), 0);
@@ -271,11 +264,11 @@ bool Wavesets<TSample>::shuffle(const unsigned int &group_size)
         for (int g = 0; g < groups; g++)
         {
             int ws_begin = ws.at(g) * group_size;
-            int ws_end = std::min(int(wavesets_idx_.size()), (ws.at(g) + 1) * group_size) - 1;
-            
+            int ws_end = static_cast<int>(std::min(wavesets_idx_.size(), (ws.at(g) + 1u) * group_size) - 1u);
+
             int start = wavesets_idx_.at(ws_begin).start;
             int end = wavesets_idx_.at(ws_end).end;
-           
+
             for (int s = start; s <= end; ++s)
             {
                 new_buffer.push_back(buffer_.at(s));
@@ -286,8 +279,9 @@ bool Wavesets<TSample>::shuffle(const unsigned int &group_size)
 
         return true;
     }
+
     return false;
-};
+}
 
 template <typename TSample>
 #if __cplusplus >= 202002L
@@ -301,8 +295,8 @@ bool Wavesets<TSample>::reverse(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start = wavesets_idx_.at(w).start;
-            int end = wavesets_idx_.at(std::min(int(wavesets_idx_.size()) - 1, w + group_size - 1)).end;
-            
+            int end = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
+
             std::vector<TSample> curr_waveset;
 
             for (int s = end; s >= start; --s)
@@ -320,8 +314,9 @@ bool Wavesets<TSample>::reverse(const unsigned int &group_size)
 
         return true;
     }
+
     return false;
-};
+}
 
 template <typename TSample>
 #if __cplusplus >= 202002L
@@ -338,11 +333,11 @@ bool Wavesets<TSample>::average(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start_curr = wavesets_idx_.at(w).start;
-            int end_curr = wavesets_idx_.at(std::min(int(wavesets_idx_.size()) - 1, w + group_size - 1)).end;
-            
+            int end_curr = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
+
             int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
             int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
-            
+
             std::vector<TSample> curr_waveset;
             std::vector<TSample> next_waveset;
 
@@ -377,8 +372,9 @@ bool Wavesets<TSample>::average(const unsigned int &group_size)
 
         return true;
     }
+
     return false;
-};
+}
 
 template <typename TSample>
 #if __cplusplus >= 202002L
@@ -395,8 +391,8 @@ bool Wavesets<TSample>::mirshrink(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start = wavesets_idx_.at(w).start;
-            int end = wavesets_idx_.at(std::min(int(wavesets_idx_.size()) - 1, w + group_size - 1)).end;
-            
+            int end = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
+
             std::vector<TSample> curr_waveset;
 
             for (int s = start; s <= end; ++s)
@@ -419,8 +415,9 @@ bool Wavesets<TSample>::mirshrink(const unsigned int &group_size)
 
         return true;
     }
+
     return false;
-};
+}
 
 template <typename TSample>
 #if __cplusplus >= 202002L
@@ -436,11 +433,11 @@ bool Wavesets<TSample>::multiply(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start_curr = wavesets_idx_.at(w).start;
-            int end_curr = wavesets_idx_.at(std::min(int(wavesets_idx_.size()) - 1, w + group_size - 1)).end;
+            int end_curr = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
             int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
             int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
-            
+
             std::vector<TSample> curr_waveset;
             std::vector<TSample> next_waveset;
 
@@ -475,8 +472,9 @@ bool Wavesets<TSample>::multiply(const unsigned int &group_size)
 
         return true;
     }
+
     return false;
-};
+}
 
 template <typename TSample>
 #if __cplusplus >= 202002L
@@ -492,11 +490,11 @@ bool Wavesets<TSample>::mix(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start_curr = wavesets_idx_.at(w).start;
-            int end_curr = wavesets_idx_.at(std::min(int(wavesets_idx_.size()) - 1, w + group_size - 1)).end;
+            int end_curr = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
             int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
             int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
-            
+
             std::vector<TSample> curr_waveset;
             std::vector<TSample> next_waveset;
 
@@ -530,1183 +528,257 @@ bool Wavesets<TSample>::mix(const unsigned int &group_size)
         buffer_ = new_buffer;
 
         return true;
-     }
-     return false;
-};
+    }
 
-/*
+    return false;
+}
 
-class wavesets : public object<wavesets>
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool Wavesets<TSample>::power(const unsigned int &group_size)
 {
-public:
-    MIN_DESCRIPTION	{ "Make wavesets operations a buffer~." };
-    MIN_TAGS		{ "audio, sampling" };
-    MIN_AUTHOR		{ "Valerio Orlandini" };
-    MIN_RELATED		{ "index~, buffer~, wave~, sonus.buffx" };
-
-    inlet<>  in	    { this, "Buffer transformation based on wavesets detection" };
-    outlet<> out	{ this, "(symbol) Information about the detected wavesets" };
-
-    buffer_reference m_buffer
+    analyse_();
+    if (!buffer_.empty() && group_size >= 1u)
     {
-        this,
-        MIN_FUNCTION
-        {
-            return {};
-        }
-    };
+        std::vector<TSample> new_buffer;
 
-    argument<symbol> m_source_arg
-    {
-        this,
-        "buffer",
-        "buffer~ to transform.",
-        MIN_ARGUMENT_FUNCTION
+        for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
-            m_buffer.set(arg);
-        }
-    };
+            int start_curr = wavesets_idx_.at(w).start;
+            int end_curr = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
-    message<> backup
-    {
-        this,
-        "backup",
-        "Backup the current buffer content",
-        setter
-        {
-            MIN_FUNCTION
+            int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
+            int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
+
+            std::vector<TSample> curr_waveset;
+            std::vector<TSample> next_waveset;
+
+            if (end_curr < start_curr)
             {
-                save_buffer();
-                return {};
+                end_curr += buffer_.size();
+            }
+
+            for (int s = start_curr; s <= end_curr; ++s)
+            {
+                curr_waveset.push_back(buffer_.at(s));
+            }
+
+            if (end_next < start_next)
+            {
+                end_next += buffer_.size();
+            }
+
+            for (int s = start_next; s <= end_next; ++s)
+            {
+                next_waveset.push_back(buffer_.at(s % buffer_.size()));
+            }
+
+            std::vector<TSample> resized_next = resize_chunk(next_waveset, curr_waveset.size());
+
+            for (int s = 0; s < curr_waveset.size(); s++)
+            {
+                new_buffer.push_back(pow(curr_waveset.at(s), resized_next.at(s)));
             }
         }
-    };
+        buffer_ = new_buffer;
 
-    message<> restore
+        return true;
+    }
+
+    return false;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool Wavesets<TSample>::stretch(const unsigned int &group_size, const TSample &stretch_factor)
+{
+    analyse_();
+    if (!buffer_.empty() && group_size >= 1u && stretch_factor != (TSample)0.0)
     {
-        this,
-        "restore",
-        "Restore the buffer content at the time when backup was set",
-        MIN_FUNCTION
+        std::vector<TSample> new_buffer;
+
+        for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
-            buffer_lock<false> b(m_buffer);
+            int start = wavesets_idx_.at(w).start;
+            int end = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
-            if (b.valid() && original_buffer_.size() > 0)
+            std::vector<TSample> curr_waveset;
+
+            for (int s = start; s <= end; ++s)
             {
-                b.resize_in_samples(original_buffer_.at(0).size());
-
-                b.dirty();
-
-                buffer_lock<> b_new(m_buffer);
-
-                if (b_new.valid())
-                {
-                    for (auto ch = 0; ch < b_new.channel_count(); ch++)
-                    {
-                        if (original_buffer_.size() > ch)
-                        {
-                            for (auto s = 0; s < b_new.frame_count(); s++)
-                            {
-                                if (original_buffer_.at(ch).size() > s)
-                                {
-                                    b_new.lookup(s, ch) = original_buffer_.at(ch).at(s);
-                                }
-                            }
-                        }
-                    }
-
-                    b_new.dirty();
-                }
+                curr_waveset.push_back(buffer_.at(s));
             }
-            
-            return {};
+
+            std::vector<TSample> stretched_waveset = resize_chunk(curr_waveset, (unsigned int)std::ceil(curr_waveset.size() * std::abs(stretch_factor)));
+
+            for (int s = 0; s < stretched_waveset.size(); s++)
+            {
+                new_buffer.push_back(stretched_waveset.at(s));
+            }
         }
-    };
+        buffer_ = new_buffer;
 
-    message<> mute
-    {
-        this,
-        "mute",
-        "Mute n wavesets after keeping m",
-        MIN_FUNCTION
+        if (stretch_factor < (TSample)0.0)
         {
-            if (!args.empty())
-            {
-                unsigned int kept = 1;
-                unsigned int mute = 0;
-
-                if (args.size() >= 2)
-                {
-                    kept = int(args.at(0));
-                    mute = int(args.at(1));
-                }
-                else
-                {
-                    mute = int(args.at(0));
-                }
-
-                analyse();
-                buffer_lock<> b(m_buffer);
-
-                if (b.valid() && (kept + mute))
-                {
-                    for (int ch = 0; ch < b.channel_count(); ++ch)
-                    {
-                        for (int w = 0; w < wavesets_idx_.at(ch).size(); ++w)
-                        {
-                            if (w % (kept + mute) >= kept)
-                            {
-                                int start = wavesets_idx_.at(ch).at(w).start;
-                                int end = wavesets_idx_.at(ch).at(w).end;
-
-                                for (int s = start; s <= end; s++)
-                                {
-                                    b.lookup(s, ch) = 0.0;
-                                }
-                            }
-                        }
-                    }
-
-                    b.dirty();
-                }
-            }            
-
-            return {};
+            return reverse(group_size);
         }
-    };
 
-    message<> shuffle
+        return true;
+    }
+
+    return false;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool Wavesets<TSample>::same(const TSample &size, const bool &unit_is_ms)
+{
+    analyse_();
+    if (!buffer_.empty() && size > (TSample)0.0)
     {
-        this,
-        "shuffle",
-        "Randomly reorder the wavesets, optionally in groups of n",
-        MIN_FUNCTION
+        std::vector<TSample> new_buffer;
+
+        unsigned int target_size = unit_is_ms ? (unsigned int)std::ceil(size * sample_rate_ * (TSample)0.001) : (unsigned int)std::ceil(size);
+
+        for (int w = 0; w < wavesets_idx_.size(); w++)
         {
-            analyse();
-            buffer_lock<> b(m_buffer);
+            int start = wavesets_idx_.at(w).start;
+            int end = wavesets_idx_.at(w).end;
 
-            int group_size = 1;
+            std::vector<TSample> curr_waveset;
 
-            if (!args.empty())
+            for (int s = start; s <= end; ++s)
             {
-                group_size = std::max(1, int(args.at(0)));
+                curr_waveset.push_back(buffer_.at(s));
             }
 
-            if (b.valid())
+            std::vector<TSample> resized_waveset = resize_chunk(curr_waveset, target_size);
+
+            for (int s = 0; s < resized_waveset.size(); s++)
             {
-                for (int ch = 0; ch < b.channel_count(); ch++)
-                {
-                    int groups = std::max(1, int(ceil((double)wavesets_idx_.at(ch).size() / (double)group_size)));
-                    if (groups == 1)
-                    {
-                        continue;
-                    }
-
-                    auto rand_dev = std::random_device{}; 
-                    auto rand_eng = std::default_random_engine{rand_dev()};
-                    std::vector<int> ws(groups);
-                    std::iota(std::begin(ws), std::end(ws), 0);
-                    std::shuffle(std::begin(ws), std::end(ws), rand_eng);
-                    std::vector<double> new_wave;
-
-                    for (int g = 0; g < groups; g++)
-                    {
-                        int ws_begin = ws.at(g) * group_size;
-                        int ws_end = std::min(int(wavesets_idx_.at(ch).size()), (ws.at(g) + 1) * group_size) - 1;
-                        
-                        int start = wavesets_idx_.at(ch).at(ws_begin).start;
-                        int end = wavesets_idx_.at(ch).at(ws_end).end;
-                       
-                        for (int s = start; s <= end; ++s)
-                        {
-                            new_wave.push_back(b.lookup(s, ch));
-                        }
-                    }
-
-                    for (int n = 0; n < new_wave.size(); n++)
-                    {
-                        b.lookup(n, ch) = new_wave.at(n);
-                    }
-                }
-
-                b.dirty();
+                new_buffer.push_back(resized_waveset.at(s));
             }
-
-            return {};
         }
-    };
+        buffer_ = new_buffer;
 
-    message<> reverse
+        return true;
+    }
+
+    return false;
+}
+
+#if __cplusplus >= 202002L
+template <typename TSample>
+requires std::floating_point<TSample>
+bool Wavesets<TSample>::filter(const std::span<const filter_params<TSample>> &filters)
+{
+    analyse_();
+    if (!buffer_.empty() && !filters.empty())
     {
-        this,
-        "reverse",
-        "Reverse each or a group of n wavesets",
-        MIN_FUNCTION
+        std::vector<TSample> new_buffer = buffer_;
+
+        for (const auto &filter : filters)
         {
-            analyse();
-            buffer_lock<> b(m_buffer);
+            Biquad<TSample> biquad_filter(sample_rate_, filter.cutoff, static_cast<TSample>(0.707), static_cast<TSample>(0.0), filter.type);
 
-            int rev_group = 1;
-
-            if (!args.empty())
+            for (int w = 0; w < wavesets_idx_.size(); w += filter.group_size)
             {
-                rev_group = std::max(1, int(args.at(0)));
-            }
+                int start = wavesets_idx_.at(w).start;
+                int end = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + filter.group_size - 1u)).end;
 
-            if (b.valid())
-            {
-                for (int ch = 0; ch < b.channel_count(); ch++)
+                for (int s = start; s <= end; ++s)
                 {
-                    int w = 0;
-                    for (w = 0; w < wavesets_idx_.at(ch).size(); w += rev_group)
-                    {
-                        int start = wavesets_idx_.at(ch).at(w).start;
-                        int end = wavesets_idx_.at(ch).at(std::min(int(wavesets_idx_.at(ch).size()) - 1, w + rev_group - 1)).end;
-                        
-                        std::vector<double> curr_waveset;
-
-                        for (int s = end; s >= start; --s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s, ch));
-                        }
-     
-                        int pos = 0;
-
-                        for (int s = start; s <= end; ++s)
-                        {
-                            b.lookup(s, ch) = curr_waveset.at(pos++);
-                        }
-                    }
-
-                    if (w - rev_group < wavesets_idx_.at(ch).size() - 1)
-                    {
-                        int start = wavesets_idx_.at(ch).at(w - rev_group).start;
-                        int end = wavesets_idx_.at(ch).at(int(wavesets_idx_.at(ch).size()) - 1).end;
-                        
-                        std::vector<double> curr_waveset;
-
-                        for (int s = end; s >= start; --s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s, ch));
-                        }
-     
-                        int pos = 0;
-
-                        for (int s = start; s <= end; ++s)
-                        {
-                            b.lookup(s, ch) = curr_waveset.at(pos++);
-                        }
-                    }
+                    buffer_.at(s) = biquad_filter.process(buffer_.at(s));
                 }
-
-                b.dirty();
-            }            
-
-            return {};
+            }
         }
-    };
 
-    message<> average
+        return true;
+    }
+
+    return false;
+}
+#endif
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
+bool Wavesets<TSample>::reshape(const Shapes &shape)
+{
+    analyse_();
+    if (!buffer_.empty())
     {
-        this,
-        "average",
-        "Average each group of wavesets with the next one",
-        MIN_FUNCTION
+        for (int w = 0; w < wavesets_idx_.size(); w++)
         {
-            analyse();
-            buffer_lock<false> b(m_buffer);
+            int start = wavesets_idx_.at(w).start;
+            int end = wavesets_idx_.at(w).end;
 
-            int avg_group = 1;
+            TSample wave_length = end - start;
 
-            if (!args.empty())
+            if (wave_length <= (TSample)0.0)
             {
-                avg_group = std::max(1, int(args.at(0)));
+                continue;
             }
 
-
-            if (b.valid())
+            for (int s = start; s <= end; ++s)
             {
-                std::vector<std::vector<double>> new_buffer;
-                int max_length = 0;
-
-                for (int ch = 0; ch < b.channel_count(); ch++)
+                TSample ramp = -1.0 * wrap(((wavesets_idx_.at(w).end - s) / wave_length) * 2.0, -1.0, 1.0);
+                if (ramp == -0.0)
                 {
-                    int w = 0;
-                    std::vector<double> new_channel;
-                    for (w = 0; w < wavesets_idx_.at(ch).size(); w += avg_group)
-                    {
-                        int start_curr = wavesets_idx_.at(ch).at(w).start;
-                        int end_curr = wavesets_idx_.at(ch).at((w + avg_group - 1) % wavesets_idx_.at(ch).size()).end;
-                        
-                        int start_next = wavesets_idx_.at(ch).at((w + avg_group) % wavesets_idx_.at(ch).size()).start;
-                        int end_next = wavesets_idx_.at(ch).at((w + (avg_group * 2) - 1) % wavesets_idx_.at(ch).size()).end;
-                        
-                        std::vector<double> curr_waveset;
-                        std::vector<double> next_waveset;
-
-                        if (end_curr < start_curr)
-                        {
-                            end_curr += b.frame_count();
-                        }
-                        for (int s = start_curr; s <= end_curr; ++s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s % b.frame_count(), ch));
-                        }
-
-                        if (end_next < start_next)
-                        {
-                            end_next += b.frame_count();
-                        }
-                        for (int s = start_next; s <= end_next; ++s)
-                        {
-                            next_waveset.push_back((double)b.lookup(s % b.frame_count(), ch));
-                        }
-
-                        auto avg_size = (curr_waveset.size() + next_waveset.size()) / 2;
-                        std::vector<double> resized_curr = resize_chunk(curr_waveset, avg_size);
-                        std::vector<double> resized_next = resize_chunk(next_waveset, avg_size);
-
-                        for (int s = 0; s < avg_size; s++)
-                        {
-                            new_channel.push_back((resized_curr.at(s) + resized_next.at(s)) * 0.5);
-                        }
-                    }
-
-                    new_buffer.push_back(new_channel);
-
-                    if (new_channel.size() > max_length)
-                    {
-                        max_length = new_channel.size();
-                    }
-                }
-                for (auto ch = 0; ch < b.channel_count(); ch++)
-                {
-                    if (new_buffer.at(ch).size() < max_length)
-                    {
-                        new_buffer.at(ch).resize(max_length, 0.0);
-                    }
+                    ramp = 0.0;
                 }
 
-                b.resize_in_samples(max_length);
-
-                b.dirty();
-
-                buffer_lock<> b_new(m_buffer);
-
-                if (b_new.valid())
+                switch (shape)
                 {
-                    for (auto ch = 0; ch < b_new.channel_count(); ch++)
+                case SAW:
+                    buffer_.at(s) = ramp;
+                    break;
+                case SINE:
+                    buffer_.at(s) = sin(M_PI * ramp);
+                    break;
+                case TRIANGLE:
+                    if (fabs(ramp) >= 0.0 && fabs(ramp) <= 0.5)
                     {
-                        for (auto s = 0; s < b_new.frame_count(); s++)
-                        {
-                            if (new_buffer.at(ch).size() > s)
-                            {
-                                b_new.lookup(s, ch) = new_buffer.at(ch).at(s);
-                            }
-                        }
+                        buffer_.at(s) = ramp * 2.0;
                     }
-
-                    b_new.dirty();
-                }
-            }
-
-            return {};
-        }
-    };
-
-    message<> mirshrink
-    {
-        this,
-        "mirshrink",
-        "Mirror-copy a group of wavesets and then shrink the group so that it keeps the original size",
-        MIN_FUNCTION
-        {
-            analyse();
-            buffer_lock<> b(m_buffer);
-
-            int mir_group = 1;
-
-            if (!args.empty())
-            {
-                mir_group = std::max(1, int(args.at(0)));
-            }
-
-
-            if (b.valid())
-            {
-                for (int ch = 0; ch < b.channel_count(); ch++)
-                {
-                    int w = 0;
-                    for (w = 0; w < wavesets_idx_.at(ch).size(); w += mir_group)
+                    else if (ramp > 0.5)
                     {
-                        int start = wavesets_idx_.at(ch).at(w).start;
-                        int end = wavesets_idx_.at(ch).at(std::min(int(wavesets_idx_.at(ch).size()) - 1, w + mir_group - 1)).end;
-                        
-                        std::vector<double> curr_waveset;
-
-                        for (int s = start; s <= end; ++s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s, ch));
-                        }
-                        for (int s = end; s >= start; --s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s, ch));
-                        }
-
-                        auto mirshrink_ws = resize_chunk(curr_waveset, curr_waveset.size() / 2);
-     
-                        int pos = 0;
-
-                        for (int s = start; s <= end; ++s)
-                        {
-                            b.lookup(s, ch) = mirshrink_ws.at(pos++);
-                        }
+                        buffer_.at(s) = (1.0 - ramp) * 2.0;
                     }
-
-                    if (w - mir_group < wavesets_idx_.at(ch).size() - 1)
+                    else if (ramp < -0.5)
                     {
-                        int start = wavesets_idx_.at(ch).at(w - mir_group).start;
-                        int end = wavesets_idx_.at(ch).at(int(wavesets_idx_.at(ch).size()) - 1).end;
-                        
-                        std::vector<double> curr_waveset;
-
-                        for (int s = start; s <= end; ++s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s, ch));
-                        }
-                        for (int s = end; s >= start; --s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s, ch));
-                        }
-     
-                        auto mirshrink_ws = resize_chunk(curr_waveset, curr_waveset.size() / 2);
-
-                        int pos = 0;
-
-                        for (int s = start; s <= end; ++s)
-                        {
-                            b.lookup(s, ch) = mirshrink_ws.at(pos++);
-                        }
+                        buffer_.at(s) = (1.0 + ramp) * -2.0;
                     }
-                }
-
-                b.dirty();
-            }            
-
-            return {};
-        }
-    };
-    
-    message<> multiply
-    {
-        this,
-        "multiply",
-        "Multiply each group of wavesets with the next one, resizing the second accordingly",
-        MIN_FUNCTION
-        {
-            analyse();
-            buffer_lock<> b(m_buffer);
-
-            int avg_group = 1;
-
-            if (!args.empty())
-            {
-                avg_group = std::max(1, int(args.at(0)));
-            }
-
-
-            if (b.valid())
-            {
-                for (int ch = 0; ch < b.channel_count(); ch++)
-                {
-                    int w = 0;
-                    std::vector<double> new_buffer;
-                    for (w = 0; w < wavesets_idx_.at(ch).size(); w += avg_group)
+                    break;
+                case PULSE:
+                    if (s < wavesets_idx_.at(w).half)
                     {
-                        int start_curr = wavesets_idx_.at(ch).at(w).start;
-                        int end_curr = wavesets_idx_.at(ch).at((w + avg_group - 1) % wavesets_idx_.at(ch).size()).end;
-                        
-                        int start_next = wavesets_idx_.at(ch).at((w + avg_group) % wavesets_idx_.at(ch).size()).start;
-                        int end_next = wavesets_idx_.at(ch).at((w + (avg_group * 2) - 1) % wavesets_idx_.at(ch).size()).end;
-                        
-                        std::vector<double> curr_waveset;
-                        std::vector<double> next_waveset;
-
-                        if (end_curr < start_curr)
-                        {
-                            end_curr += b.frame_count();
-                        }
-                        for (int s = start_curr; s <= end_curr; ++s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s % b.frame_count(), ch));
-                        }
-
-                        if (end_next < start_next)
-                        {
-                            end_next += b.frame_count();
-                        }
-                        for (int s = start_next; s <= end_next; ++s)
-                        {
-                            next_waveset.push_back((double)b.lookup(s % b.frame_count(), ch));
-                        }
-     
-                        std::vector<double> resized_next = resize_chunk(next_waveset, curr_waveset.size());
-
-                        for (int s = 0; s < curr_waveset.size(); s++)
-                        {
-                            new_buffer.push_back(curr_waveset.at(s) * resized_next.at(s));
-                        }
+                        buffer_.at(s) = -1.0;
                     }
-                    for (int s = 0; s < new_buffer.size(); s++)
-                    {
-                        b.lookup(s, ch) = new_buffer.at(s);
-                    }
-                }
-
-                b.dirty();
-            }            
-
-            return {};
-        }
-    };  
-
-    message<> mix
-    {
-        this,
-        "mix",
-        "Mix each group of wavesets with the next one, resizing the second accordingly",
-        MIN_FUNCTION
-        {
-            analyse();
-            buffer_lock<> b(m_buffer);
-
-            int avg_group = 1;
-
-            if (!args.empty())
-            {
-                avg_group = std::max(1, int(args.at(0)));
-            }
-
-            if (b.valid())
-            {
-                for (int ch = 0; ch < b.channel_count(); ch++)
-                {
-                    int w = 0;
-                    std::vector<double> new_buffer;
-                    for (w = 0; w < wavesets_idx_.at(ch).size(); w += avg_group)
-                    {
-                        int start_curr = wavesets_idx_.at(ch).at(w).start;
-                        int end_curr = wavesets_idx_.at(ch).at((w + avg_group - 1) % wavesets_idx_.at(ch).size()).end;
-                        
-                        int start_next = wavesets_idx_.at(ch).at((w + avg_group) % wavesets_idx_.at(ch).size()).start;
-                        int end_next = wavesets_idx_.at(ch).at((w + (avg_group * 2) - 1) % wavesets_idx_.at(ch).size()).end;
-                        
-                        std::vector<double> curr_waveset;
-                        std::vector<double> next_waveset;
-
-                        if (end_curr < start_curr)
-                        {
-                            end_curr += b.frame_count();
-                        }
-                        for (int s = start_curr; s <= end_curr; ++s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s % b.frame_count(), ch));
-                        }
-
-                        if (end_next < start_next)
-                        {
-                            end_next += b.frame_count();
-                        }
-                        for (int s = start_next; s <= end_next; ++s)
-                        {
-                            next_waveset.push_back((double)b.lookup(s % b.frame_count(), ch));
-                        }
-     
-                        std::vector<double> resized_next = resize_chunk(next_waveset, curr_waveset.size());
-
-                        for (int s = 0; s < curr_waveset.size(); s++)
-                        {
-                            new_buffer.push_back((curr_waveset.at(s) + resized_next.at(s)) * 0.707f);
-                        }
-                    }
-                    for (int s = 0; s < new_buffer.size(); s++)
-                    {
-                        b.lookup(s, ch) = new_buffer.at(s);
-                    }
-                }
-
-                b.dirty();
-            }            
-
-            return {};
-        }
-    };
-    
-    message<> power
-    {
-        this,
-        "power",
-        "Raise each sample of a group of wavesets with the absolute value of the samples of the next one as exponent",
-        MIN_FUNCTION
-        {
-            analyse();
-            buffer_lock<> b(m_buffer);
-
-            int avg_group = 1;
-
-            if (!args.empty())
-            {
-                avg_group = std::max(1, int(args.at(0)));
-            }
-
-
-            if (b.valid())
-            {
-                for (int ch = 0; ch < b.channel_count(); ch++)
-                {
-                    int w = 0;
-                    std::vector<double> new_buffer;
-                    for (w = 0; w < wavesets_idx_.at(ch).size(); w += avg_group)
-                    {
-                        int start_curr = wavesets_idx_.at(ch).at(w).start;
-                        int end_curr = wavesets_idx_.at(ch).at((w + avg_group - 1) % wavesets_idx_.at(ch).size()).end;
-                        
-                        int start_next = wavesets_idx_.at(ch).at((w + avg_group) % wavesets_idx_.at(ch).size()).start;
-                        int end_next = wavesets_idx_.at(ch).at((w + (avg_group * 2) - 1) % wavesets_idx_.at(ch).size()).end;
-                        
-                        std::vector<double> curr_waveset;
-                        std::vector<double> next_waveset;
-
-                        if (end_curr < start_curr)
-                        {
-                            end_curr += b.frame_count();
-                        }
-                        for (int s = start_curr; s <= end_curr; ++s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s % b.frame_count(), ch));
-                        }
-
-                        if (end_next < start_next)
-                        {
-                            end_next += b.frame_count();
-                        }
-                        for (int s = start_next; s <= end_next; ++s)
-                        {
-                            next_waveset.push_back((double)b.lookup(s % b.frame_count(), ch));
-                        }
-     
-                        std::vector<double> resized_next = resize_chunk(next_waveset, curr_waveset.size());
-
-                        for (int s = 0; s < curr_waveset.size(); s++)
-                        {
-                            new_buffer.push_back(std::copysign(0.5, curr_waveset.at(s)) * std::pow(std::abs(curr_waveset.at(s)), std::abs(resized_next.at(s))));
-                        }
-                    }
-                    for (int s = 0; s < new_buffer.size(); s++)
-                    {
-                        b.lookup(s, ch) = new_buffer.at(s);
-                    }
-                }
-
-                b.dirty();
-            }            
-
-            return {};
-        }
-    };
-
-    message<> stretch
-    {
-        this,
-        "stretch",
-        "Adjust the length of each group of n wavesets according to m stretch factor, the sequence can be of arbitrary length (i.e. n1 m1 n2 m2 n3 m3...)",
-        MIN_FUNCTION
-        {
-            analyse();
-            buffer_lock<false> b(m_buffer);
-
-            if (args.empty() || (args.size() % 2))
-            {
-                cout << "Syntax: stretch n1 m1 n2 m2 n3 m3 ..." << endl;
-                return {};
-            }
-
-            if (b.valid())
-            {
-                struct block
-                {
-                    int length;
-                    double stretch;
-                };
-
-                std::vector<block> seq;
-
-                for (auto a = 0; a < args.size(); a+=2)
-                {
-                    block curr_block;
-                    curr_block.length = std::max(0, int(args.at(a)));
-                    curr_block.stretch = std::clamp(double(args.at(a+1)), 0.01, 100.0);
-                    seq.push_back(curr_block);
-                }
-
-                std::vector<std::vector<double>> new_buffer; 
-                int max_length = 0;
-
-                for (int ch = 0; ch < b.channel_count(); ch++)
-                {
-                    std::vector<double> new_channel;
-
-                    int w = 0;
-                    int seq_pos = 0;
-
-                    for (w = 0; w < wavesets_idx_.at(ch).size(); w += seq.at(seq_pos).length)
-                    {
-                        int start = wavesets_idx_.at(ch).at(w).start;
-                        int end = wavesets_idx_.at(ch).at(std::min(int(wavesets_idx_.at(ch).size()) - 1, w + seq.at(seq_pos).length - 1)).end;
-                        
-                        std::vector<double> curr_waveset;
-
-                        for (auto s = start; s <= end; s++)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s, ch));
-                        }
-
-                        auto res_waveset = resize_chunk(curr_waveset, (unsigned int)(std::ceil((double)curr_waveset.size() * seq.at(seq_pos).stretch)));
-                        
-                        new_channel.insert(new_channel.end(), res_waveset.begin(), res_waveset.end());
-
-                        ++seq_pos;
-                        seq_pos %= seq.size();
-                    }
-
-                    new_buffer.push_back(new_channel);
-
-                    if (new_channel.size() > max_length)
-                    {
-                        max_length = new_channel.size();
-                    }
-                }
-
-                for (auto ch = 0; ch < b.channel_count(); ch++)
-                {
-                    if (new_buffer.at(ch).size() < max_length)
-                    {
-                        new_buffer.at(ch).resize(max_length, 0.0);
-                    }
-                }
-
-                b.resize_in_samples(max_length);
-
-                b.dirty();
-
-                buffer_lock<> b_new(m_buffer);
-
-                if (b_new.valid())
-                {
-                    for (auto ch = 0; ch < b_new.channel_count(); ch++)
-                    {
-                        for (auto s = 0; s < b_new.frame_count(); s++)
-                        {
-                            if (new_buffer.at(ch).size() > s)
-                            {
-                                b_new.lookup(s, ch) = new_buffer.at(ch).at(s);
-                            }
-                        }
-                    }
-
-                    b_new.dirty();
-                }
-            }
-
-            return {};
-        }
-    };
-
-    message<> filter
-    {
-        this,
-        "filter",
-        "Apply to n wavesets a filter (lp, hp, bp, or no for no filter) with a m cutoff, the sequence can be of arbitrary length (e.g. n1 lp m1 n2 no m2...)",
-        MIN_FUNCTION
-        {
-            analyse();
-            buffer_lock<> b(m_buffer);
-
-            if (args.empty() || (args.size() % 3))
-            {
-                cout << "Syntax: filter n1 <filter type (lp, hp, bp, no)> <cutoff> n2 <filter type (lp, hp, bp, no)> <cutoff> ..." << endl;
-                return {};
-            }
-
-            if (b.valid())
-            {
-                struct block
-                {
-                    int length;
-                    Biquad<double> filter;
-                    bool apply = false;
-                };
-
-                std::vector<block> seq;
-
-                for (auto a = 0; a < args.size(); a+=3)
-                {
-                    block curr_block;
-                    curr_block.length = std::max(0, int(args.at(a)));
-                    curr_block.filter.set_sample_rate(b.samplerate());
-                    if (std::string(args.at(a+1)) == "lp")
-                    {
-                        curr_block.apply = true;
-                        curr_block.filter.set_type(BQFilters::lowpass);
-                        curr_block.filter.set_cutoff(double(args.at(a+2)));
-                    }
-                    if (std::string(args.at(a+1)) == "hp")
-                    {
-                        curr_block.apply = true;
-                        curr_block.filter.set_type(BQFilters::hipass);
-                        curr_block.filter.set_cutoff(double(args.at(a+2)));
-                    }
-                    if (std::string(args.at(a+1)) == "bp")
-                    {
-                        curr_block.apply = true;
-                        curr_block.filter.set_type(BQFilters::bandpass);
-                        curr_block.filter.set_cutoff(double(args.at(a+2)));
-                    }
-                    seq.push_back(curr_block);
-                }
-
-                std::vector<std::vector<double>> new_buffer;
-                for (int ch = 0; ch < b.channel_count(); ch++)
-                {
-                    std::vector<double> new_channel;
-
-                    int w = 0;
-                    int seq_pos = 0;
-
-                    for (w = 0; w < wavesets_idx_.at(ch).size(); w += seq.at(seq_pos).length)
-                    {
-                        if (seq.at(seq_pos).apply)
-                        {
-                            int start = wavesets_idx_.at(ch).at(w).start;
-                            int end = wavesets_idx_.at(ch).at(std::min(int(wavesets_idx_.at(ch).size()) - 1, w + seq.at(seq_pos).length - 1)).end;
-                            
-                            seq.at(seq_pos).filter.clear();
-
-                            for (auto s = start; s <= end; s++)
-                            {
-                                b.lookup(s, ch) = seq.at(seq_pos).filter.run(b.lookup(s, ch));
-                            }
-                        }
-
-                        ++seq_pos;
-                        seq_pos %= seq.size();
-                    }
-                }
-
-                b.dirty();
-            }            
-
-            return {};
-        }
-    };
-
-    message<> same
-    {
-        this,
-        "same",
-        "Resize each group of n wavesets to the same length, that can be expressed in a time unit among ms (milliseconds, default) or sm (samples)",
-        MIN_FUNCTION
-        {
-            analyse();
-            buffer_lock<false> b(m_buffer);
-
-            if (args.size() < 2)
-            {
-                cout << "Syntax: same n <length> <unit (ms, sm) - optional, default ms>" << endl;
-                return {};
-            }
-
-            if (b.valid())
-            {
-                int avg_group = std::max(1, int(args.at(0)));
-                double length = double(args.at(1));
-                int sample_length = static_cast<int>(std::ceil(length * (double)b.samplerate() * 0.001f));
-
-                if (args.size() > 2 && std::string(args.at(2)) == "sm")
-                {
-                    sample_length = static_cast<int>(length);
-                }
-
-                if (sample_length < 2)
-                {
-                    sample_length = 2; 
-                }
-
-                std::vector<std::vector<double>> new_buffer;
-                int max_length = 0;
-
-                for (int ch = 0; ch < b.channel_count(); ch++)
-                {
-                    int w = 0;
-                    std::vector<double> new_channel;
-
-                    for (w = 0; w < wavesets_idx_.at(ch).size(); w += avg_group)
-                    {
-                        int start_curr = wavesets_idx_.at(ch).at(w).start;
-                        int end_curr = wavesets_idx_.at(ch).at((w + avg_group - 1) % wavesets_idx_.at(ch).size()).end;
-                        
-                        std::vector<double> curr_waveset;
-
-                        if (end_curr < start_curr)
-                        {
-                            end_curr += b.frame_count();
-                        }
-                        for (int s = start_curr; s <= end_curr; ++s)
-                        {
-                            curr_waveset.push_back((double)b.lookup(s % b.frame_count(), ch));
-                        }
-     
-                        std::vector<double> resized = resize_chunk(curr_waveset, sample_length);
-
-                        for (int s = 0; s < resized.size(); s++)
-                        {
-                            new_channel.push_back(resized.at(s));
-                        }
-                    }
-
-                    new_buffer.push_back(new_channel);
-
-                    if (new_channel.size() > max_length)
-                    {
-                        max_length = new_channel.size();
-                    }
-                }
-
-                for (auto ch = 0; ch < b.channel_count(); ch++)
-                {
-                    if (new_buffer.at(ch).size() < max_length)
-                    {
-                        new_buffer.at(ch).resize(max_length, 0.0);
-                    }
-                }
-
-                b.resize_in_samples(max_length);
-
-                b.dirty();
-
-                buffer_lock<> b_new(m_buffer);
-
-                if (b_new.valid())
-                {
-                    for (auto ch = 0; ch < b_new.channel_count(); ch++)
-                    {
-                        for (auto s = 0; s < b_new.frame_count(); s++)
-                        {
-                            if (new_buffer.at(ch).size() > s)
-                            {
-                                b_new.lookup(s, ch) = new_buffer.at(ch).at(s);
-                            }
-                        }
-                    }
-
-                    b_new.dirty();
-                }
-            }
-
-            return {};
-        }
-    };
-
-    message<> reshape
-    {
-        this,
-        "reshape",
-        "Transform all the wavesets in the desired shape (sin, saw, tri, rect)",
-        MIN_FUNCTION
-        {
-            if (!args.empty())
-            {
-                analyse();
-                buffer_lock<> b(m_buffer);
-                Shapes waveshape = SINE;
-                if (args[0] == "sin")
-                {
-                    waveshape = SINE;
-                }
-                else if (args[0] == "saw")
-                {
-                    waveshape = SAW;
-                }
-                else if (args[0] == "rect")
-                {
-                    waveshape = PULSE;
-                }
-                else if (args[0] == "tri")
-                {
-                    waveshape = TRIANGLE;
-                }
-                else
-                {
-                    cout << "Unknown shape, defaulting to sine" << endl;
-                }
-
-                if (b.valid())
-                {
-                    for (int ch = 0; ch < b.channel_count(); ch++)
-                    {
-                        for (int w = 0; w < wavesets_idx_.at(ch).size(); w++)
-                        {
-                            double wave_length = wavesets_idx_.at(ch).at(w).end - wavesets_idx_.at(ch).at(w).start;
-
-                            if (wave_length > 0.0)
-                            {
-                                for (int s = wavesets_idx_.at(ch).at(w).start; s <= wavesets_idx_.at(ch).at(w).end; s++)
-                                {
-                                    double ramp = -1.0 * wrap(((wavesets_idx_.at(ch).at(w).end - s) / wave_length) * 2.0, -1.0, 1.0);
-                                    if (ramp == -0.0)
-                                    {
-                                        ramp = 0.0;
-                                    }
-                                    switch (waveshape)
-                                    {
-                                        case SAW:
-                                            b.lookup(s, ch) = ramp;
-                                            break;
-                                        case SINE:
-                                            b.lookup(s, ch) = sin(M_PI * ramp);
-                                            break;
-                                        case TRIANGLE:
-                                            if (fabs(ramp) >= 0.0 && fabs(ramp) <= 0.5)
-                                            {
-                                                b.lookup(s, ch) = ramp * 2.0;
-                                            }
-                                            else if (ramp > 0.5)
-                                            {
-                                                b.lookup(s, ch) = (1.0 - ramp) * 2.0;
-                                            }
-                                            else if (ramp < -0.5)
-                                            {
-                                                b.lookup(s, ch) = (1.0 + ramp) * -2.0;
-                                            }
-                                            break;
-                                        case PULSE:
-                                            if (s < wavesets_idx_.at(ch).at(w).half)
-                                            {
-                                                b.lookup(s, ch) = -1.0;
-                                            }
-                                            else
-                                            {
-                                                b.lookup(s, ch) = 1.0;
-                                            }
-                                            break;
-                                    }
-
-                                    b.lookup(s, ch) *= wavesets_idx_.at(ch).at(w).peak;
-                                }
-                            }
-                        }
-                    }
-
-                    b.dirty();
-                }
-            }
-            else
-            {
-                cout << "Missing argument" << endl;
-            }       
-
-            return {};
-
-        }
-    };
-
-private:
-    std::vector<std::vector<waveset_params<double>>> wavesets_idx_;
-    std::vector<std::vector<double>> original_buffer_;
-
-    void analyse()
-    {
-        buffer_lock<> b(m_buffer);
-
-        if (b.valid())
-        {
-            wavesets_idx_.clear();
-
-            for (int ch = 0; ch < b.channel_count(); ch++)
-            {
-                std::vector<waveset_params<double>> curr_channel;
-                waveset_params<double> curr_waveset;
-                bool sign;
-                Stages stage = BEGIN;
-                curr_waveset.start = 0;
-                curr_waveset.half = 0;
-                curr_waveset.peak = 0.0;
-                for (int s = 0; s < b.frame_count(); s++)
-                {
-                    if (!s)
-                    {
-                        sign = std::signbit(b.lookup(s, ch));
-                    }
-                    else if (std::signbit(b.lookup(s, ch)) != sign)
-                    {
-                        if (stage == BEGIN)
-                        {
-                            curr_waveset.half = s;
-                            stage = HALF;
-                        }
                     else
                     {
-                        curr_waveset.end = std::max(0, s - 1);
-                        curr_channel.push_back(curr_waveset);
-                        curr_waveset.start = s;
-                        curr_waveset.half = s;
-                        curr_waveset.peak = 0.0;
-                        stage = BEGIN;
+                        buffer_.at(s) = 1.0;
                     }
+                    break;
                 }
 
-                    sign = std::signbit(b.lookup(s, ch));
-
-                    if (fabs(b.lookup(s, ch)) > curr_waveset.peak)
-                    {
-                        curr_waveset.peak = (double)fabs(b.lookup(s, ch));
-                    }
-                }
-                curr_waveset.end = b.frame_count() - 1;
-                curr_channel.push_back(curr_waveset);
-                wavesets_idx_.push_back(curr_channel);
-            }
-
-            for (auto c = 0; c < wavesets_idx_.size(); c++)
-            {
-                out.send("Channel " + std::to_string(c + 1) + " wavesets: " + std::to_string(wavesets_idx_.at(c).size()));
+                buffer_.at(s) *= wavesets_idx_.at(w).peak;
             }
         }
+
+        return true;
     }
 
-    void save_buffer()
-    {
-        buffer_lock<> b(m_buffer);
+    return false;
+}
 
-        if (b.valid())
-        {
-            original_buffer_.clear();
-
-            for (int ch = 0; ch < b.channel_count(); ch++)
-            {
-                std::vector<double> curr_channel;
-
-                for (int s = 0; s < b.frame_count(); s++)
-                {
-                    curr_channel.push_back(b.lookup(s, ch));
-                }
-
-                original_buffer_.push_back(curr_channel);
-            }
-        }
-    }
-};
-*/
 }
 
 #endif // WAVESETS_H_

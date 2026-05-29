@@ -28,7 +28,7 @@ Currently available headers are:
 * `window_functions.h` A series of window functions
 * `wtosc.h` Wavetable oscillator
 
-These classes are designed to be used in real-time audio applications, such as digital audio workstations, plugins, or live coding environments. They can also be used for offline sound synthesis and processing. The library is header-only, so you can simply include the desired header files in your project and start using the classes. No external dependencies are required, except for the C++ standard library and a C++ compiler that supports at least C++14, even if C++20 is recommended and necessary for some specific features.
+These classes are designed to be used in real-time audio applications, such as digital audio workstations, plugins, or live coding environments. They can also be used for offline sound synthesis and processing. The library is header-only, so you can simply include the desired header files in your project and start using the classes. No external dependencies are required, except for the C++ standard library and a C++ compiler that supports at least C++14, even if C++20 is recommended and necessary for some specific features. If you are using C++14, always include `soutel.h` instead of single headers.
 
 ### Tutorial
 
