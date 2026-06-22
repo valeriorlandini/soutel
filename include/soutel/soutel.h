@@ -57,6 +57,7 @@ const T& clamp(const T& v, const T& lo, const T& hi)
 #include "roessler.h"
 #include "simpleosc.h"
 #include "utils.h"
+#include "wavesets.h"
 #include "window_functions.h"
 #include "wtosc.h"
 

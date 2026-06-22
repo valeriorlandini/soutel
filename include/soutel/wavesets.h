@@ -216,6 +216,15 @@ template <typename TSample>
 #if __cplusplus >= 202002L
 requires std::floating_point<TSample>
 #endif
+std::vector<TSample> Wavesets<TSample>::get_buffer()
+{
+    return buffer_;
+}
+
+template <typename TSample>
+#if __cplusplus >= 202002L
+requires std::floating_point<TSample>
+#endif
 bool Wavesets<TSample>::mute(const unsigned int &keep, const unsigned int &mute)
 {
     analyse_();
@@ -264,7 +273,7 @@ bool Wavesets<TSample>::shuffle(const unsigned int &group_size)
         for (int g = 0; g < groups; g++)
         {
             int ws_begin = ws.at(g) * group_size;
-            int ws_end = static_cast<int>(std::min(wavesets_idx_.size(), (ws.at(g) + 1u) * group_size) - 1u);
+            int ws_end = static_cast<int>(std::min((unsigned int)(wavesets_idx_.size()), (ws.at(g) + 1u) * group_size) - 1u);
 
             int start = wavesets_idx_.at(ws_begin).start;
             int end = wavesets_idx_.at(ws_end).end;
@@ -295,7 +304,7 @@ bool Wavesets<TSample>::reverse(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start = wavesets_idx_.at(w).start;
-            int end = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
+            int end = wavesets_idx_.at(std::min((unsigned int)wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
             std::vector<TSample> curr_waveset;
 
@@ -333,7 +342,7 @@ bool Wavesets<TSample>::average(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start_curr = wavesets_idx_.at(w).start;
-            int end_curr = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
+            int end_curr = wavesets_idx_.at(std::min((unsigned int)wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
             int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
             int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
@@ -391,7 +400,7 @@ bool Wavesets<TSample>::mirshrink(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start = wavesets_idx_.at(w).start;
-            int end = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
+            int end = wavesets_idx_.at(std::min((unsigned int)wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
             std::vector<TSample> curr_waveset;
 
@@ -433,7 +442,7 @@ bool Wavesets<TSample>::multiply(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start_curr = wavesets_idx_.at(w).start;
-            int end_curr = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
+            int end_curr = wavesets_idx_.at(std::min((unsigned int)wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
             int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
             int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
@@ -490,7 +499,7 @@ bool Wavesets<TSample>::mix(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start_curr = wavesets_idx_.at(w).start;
-            int end_curr = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
+            int end_curr = wavesets_idx_.at(std::min((unsigned int)wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
             int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
             int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
@@ -547,7 +556,7 @@ bool Wavesets<TSample>::power(const unsigned int &group_size)
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start_curr = wavesets_idx_.at(w).start;
-            int end_curr = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
+            int end_curr = wavesets_idx_.at(std::min((unsigned int)wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
             int start_next = wavesets_idx_.at((w + group_size) % wavesets_idx_.size()).start;
             int end_next = wavesets_idx_.at((w + (group_size * 2) - 1) % wavesets_idx_.size()).end;
@@ -604,7 +613,7 @@ bool Wavesets<TSample>::stretch(const unsigned int &group_size, const TSample &s
         for (int w = 0; w < wavesets_idx_.size(); w += group_size)
         {
             int start = wavesets_idx_.at(w).start;
-            int end = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
+            int end = wavesets_idx_.at(std::min((unsigned int)wavesets_idx_.size() - 1u, w + group_size - 1u)).end;
 
             std::vector<TSample> curr_waveset;
 
@@ -690,7 +699,7 @@ bool Wavesets<TSample>::filter(const std::span<const filter_params<TSample>> &fi
             for (int w = 0; w < wavesets_idx_.size(); w += filter.group_size)
             {
                 int start = wavesets_idx_.at(w).start;
-                int end = wavesets_idx_.at(std::min(wavesets_idx_.size() - 1u, w + filter.group_size - 1u)).end;
+                int end = wavesets_idx_.at(std::min((unsigned int)wavesets_idx_.size() - 1u, w + filter.group_size - 1u)).end;
 
                 for (int s = start; s <= end; ++s)
                 {
